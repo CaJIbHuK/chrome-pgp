@@ -1,0 +1,46 @@
+	.form-group {
+		margin-right: 10px;
+		margin-left: 10px;
+	}
+
+	ul {
+		list-style-type: none;
+	}
+
+	#key{
+		width: 200px;
+	}
+
+	#result{
+		width: 200px;
+		padding-bottom: 10px;
+		resize: vertical;
+	}
+
+	#encrypt{
+		margin-bottom: 10px;
+	}
+
+	#decrypt{
+		margin-bottom: 10px;
+	}
+
+	.btn{
+		width: 50%;
+	}
+
+	.options_header{
+		font-size: 25px;	
+	}
+
+	.nav{
+		font-size: 20px;
+	}
+
+	#HKP_SRV{
+		width: 50%;
+	}
+	/*
+	#current-settings{
+		margin-top: 50px;
+	}*/

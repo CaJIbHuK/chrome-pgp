@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+</head>
+<body>
+
+<script type="text/javascript" src="../js/jquery.js"> </script>
+<script type="text/javascript" src="../js/openpgp.min.js"> </script>
+<script type="text/javascript" src="../js/openpgp.worker.min.js"> </script>
+<script type="text/javascript" src="../js/options.js"> </script>
+<script type="text/javascript" src="js/handlebars-v4.0.5.js"></script>
+
+<div class="row">
+<div class="col-md-12">
+	<div class="panel panel-primary">
+	<div class="panel-heading options_header">Options</div>
+	</div>
+	</div>
+</div>
+
+<div class="row">
+<div class="col-md-3" id="menu">
+  <ul class="nav nav-pills nav-stacked">
+    <li class="active" id="main_opt" name="Main settings"><a href="#main">Main</a></li>
+    <li id="keys_opt" name="My keys"><a href="#keys">My keys</a></li>
+    <li id="gen_opt" name="Key generation"><a href="#keygen">Key generation</a></li>
+    <li id="about_opt" name="About"><a href="#about" >About</a></li>
+  </ul>
+</div>
+
+<div class="col-md-9" id="main_settings">
+	<script id="template" type="text/x-handlebars-template">
+      <div id="current-settings">
+    	<div class="panel panel-primary">
+      		<div class="panel-body">
+      		<h2>{{title}}</h2>
+      		<hr>
+	  		<div class="settings-container">
+	  			{{#each settings}}
+				<label>{{this.title}}:</label>				
+				{{{this.content}}}
+	  			{{/each}}
+	  		</div>
+	  		</div>
+      	</div>
+      </div>
+   </script>
+</div>
+</div>
+
+
+</body>
+</html>

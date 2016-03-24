@@ -1,0 +1,42 @@
+{
+"manifest_version": 2,
+
+  "name": "My Extention",
+  "description": "Something",
+  "version": "1.0",
+
+  "browser_action": {
+    "default_icon": "images/icon.png",
+    "default_popup": "popup.html",
+"default_title": "Click here!"
+  },
+
+  "permissions": [
+  "storage",
+  "tabs",
+    "activeTab"
+    ,"http://*/",
+    "https://*/"
+  ],
+
+  // "background":{
+  //   // "page":["background.html"],
+  //   "scripts":["js/background.js"],
+  //   "persistent":false
+  // },
+
+ "content_scripts": [
+   {
+     "matches": ["<all_urls>"],
+     "js": ["js/selection.js"],
+     "run_at": "document_idle"//document_start - не сработал
+     // "all_frames": true
+   }
+ ],
+
+ "sandbox":{
+  "pages":["options.html"]
+ },
+
+  "options_page":"options.html"
+}

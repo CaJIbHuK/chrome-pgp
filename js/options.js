@@ -1,8 +1,10 @@
 $(document).ready(function() {
 	ChangePill("main_opt");
+	
 	$("#menu").children('ul').children('li').click(function(event) {
 		ChangePill(event.currentTarget.id);
 	});
+
 });
 
 function ChangePill(id) {
@@ -86,12 +88,11 @@ function getContent(name){
 				<textarea class="form-control gen-key-text" rows="5" id="gen_pub_key" readonly></textarea>
 			</div>			
 		</div>
-		<div class="form-group">
-		<div class="btn btn-group">
-				<input type="button" class="btn btn-primary btn-gen" id="generate" value="Generate"></input>
-				<input type="reset" class="btn btn-primary btn-gen" id="clear" value="Clear"></input>
-				<input type="button" class="btn btn-success btn-gen" id="save" value="Save"></input>
-			</div>
+		<div class="form-group btn-group col-md-5">
+
+				<input type="button" class="btn btn-primary" id="generate" value="Generate"></input>
+				<input type="reset" class="btn btn-primary" id="clear" value="Clear"></input>
+				<input type="button" class="btn btn-success" id="save" value="Save"></input>
 		</div>
 		`;
 	}

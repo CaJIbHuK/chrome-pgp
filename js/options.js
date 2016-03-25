@@ -157,15 +157,27 @@ function initEvents(id) {
 	} else if (id == "gen_opt") {
 
 		$("#generate").click(function(event) {
-			if (validateForm(event)){
+			if (validateForm(event)) {
 				data = {
-					userIds:[{name:$("#subj_name").val(),email:$("#subj_email").val()}],
-					numBits:4096,
-					passphrase:$("#subj_passphrase").val() //protects a private key
+					userIds: [{
+						name: $("#subj_name").val(),
+						email: $("#subj_email").val()
+					}],
+					numBits: 4096,
+					passphrase: $("#subj_passphrase").val() //protects a private key
 				};
-				result = generateKeys(data);
-				$("#gen_priv_key").val(result.privKey);
-				$("#gen_pub_key").val(result.pubKey);
+				var openpgp = window.openpgp;
+				openpgp.generateKey(data).then(function(key) {
+					$("#gen_priv_key").val(key.privateKeyArmored);
+					$("#gen_pub_key").val(key.publicKeyArmored);
+				});
+			}
+		});
+
+		$("#save").click(function(event) {
+			if ($("#gen_priv_key").val() && $("#gen_pub_key").val()) {
+				saveTextAsFile("gen_priv_key", "private_key.txt");
+				saveTextAsFile("gen_pub_key", "public_key.txt");
 			}
 		});
 
@@ -199,27 +211,12 @@ function matchAsEmpty(el, cancel = false) {
 	if (cancel) {
 		var container = $(el).closest('.form-group')
 		if (container.hasClass('has-error'))
-		container.removeClass('has-error');
+			container.removeClass('has-error');
 	} else
 		$(el).closest('.form-group').addClass('has-error');
 }
 
-function generateKeys(data){
-	result = {privKey:undefined, pubKey:undefined};
-	
-	var openpgp = window.openpgp; // use as CommonJS, AMD, ES6 module or via window.openpgp
 
-	if (openpgp.getWorker() == undefined)
-		openpgp.initWorker({
-			path: 'openpgp.worker.min.js'
-		});
-
-	openpgp.generateKey(data).then( function(key){
-		result.privKey = key.privateKeyArmored;
-		result.pubKey = key.publicKeyArmored;
-	},function(){alert("упс")})
-	return result;
-}
 
 //       <tr>
 //         <td>John</td>

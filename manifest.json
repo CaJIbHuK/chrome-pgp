@@ -36,6 +36,7 @@
 
  "sandbox":{
   "pages":["options.html"]
+  
  },
 
   "options_page":"options.html"

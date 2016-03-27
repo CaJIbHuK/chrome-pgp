@@ -3,6 +3,11 @@
 		margin-left: 10px;
 	}
 
+	#loader{
+		height: 30px;
+		width: 30px;
+	}
+
 	.btn-gen {
 		width: 25%;
 	}

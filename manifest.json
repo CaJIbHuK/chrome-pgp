@@ -16,14 +16,14 @@
   "tabs",
     "activeTab"
     ,"http://*/",
-    "https://*/"
+    "https://*/",
+    "localhost"
   ],
 
-  // "background":{
-  //   // "page":["background.html"],
-  //   "scripts":["js/background.js"],
-  //   "persistent":false
-  // },
+  "background":{
+    "scripts":["js/background.js"],
+    "persistent":false
+  },
 
  "content_scripts": [
    {
@@ -36,8 +36,8 @@
 
  "sandbox":{
   "pages":["options.html"]
-  
- },
+    },
 
   "options_page":"options.html"
+
 }

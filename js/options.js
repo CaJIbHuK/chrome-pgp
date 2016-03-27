@@ -100,7 +100,7 @@ function getContent(name) {
 		 	<div class="form-group">
 				<label for="subj_passphrase" class="control-label col-md-2">Passpharse:</label>
 				<div class="col-md-8">
-		 			<input type="text" class="form-control" id="subj_passphrase" placeholder="key">
+		 			<input type="password" class="form-control" id="subj_passphrase" placeholder="key">
 			 	</div>
 		 	</div>
 		 </div>`
@@ -121,6 +121,9 @@ function getContent(name) {
 				<input type="button" class="btn btn-primary" id="generate" value="Generate"></input>
 				<input type="reset" class="btn btn-primary" id="clear" value="Clear"></input>
 				<input type="button" class="btn btn-success" id="save" value="Save"></input>
+				<div id="preloader-container" class="hidden">
+					<img id="loader" src="images/loader.gif">
+				</div>
 		</div>
 		`;
 	} else if (name == "about") {
@@ -132,28 +135,117 @@ function getTableOfPubs() {
 	// some actions with local storage...
 
 	return `
-	<div class="form-group">
-	<div class="container col-md-12">       
-  		<table class="table table-hover" id="pk_table">
-    		<thead>
-      			<tr>
-        			<th>Name</th>
-		        	<th>Email</th>
-        			<th>Public key</th>
-      			</tr>
-    		</thead>
-    		<tbody>
-    		</tbody>
-  		</table>
+	<div class="form-group" id="pk_table">
+		<div class="container col-md-12">       
+	  		<table class="table table-hover" id="pk_table">
+	    		<thead>
+	      			<tr>
+	        			<th>Name</th>
+			        	<th>Email</th>
+	        			<th>Public key</th>
+	      			</tr>
+	    		</thead>
+	    		<tbody>
+	    		</tbody>
+	  		</table>
+		</div>
 	</div>
-	</div>`;
+	<div class="form-group btn-group col-md-5">
+		<div class="btn-group">
+			<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+	    		Add <span class="caret"></span></button>
+	    	<ul class="dropdown-menu" role="menu">
+	      		<li><a id="add_text" href="#">Text</a></li>
+	      		<li><a id="add_file" href="#">File</a></li>
+	    	</ul>
+  		</div>
+  		<input type="button" class="btn btn-primary" id="modify" value="Modify"></input>		
+		<input type="button" class="btn btn-danger" id="del" value="Delete"></input>		
+	</div>
+	`;
 }
+// <input type="button" class="btn btn-success" id="add" value="Add"></input>
 
 function initEvents(id) {
 	if (id == "main_opt") {
-		// alert('');
+
 	} else if (id == "keys_opt") {
-		// alert('');
+
+		$("#add_text").click(function(event) {
+
+		});
+
+		$("#add_file").click(function(event) {
+			addPKFile();
+		});
+
+
+		//drag n drop files
+		var pkTable = document.getElementById("pk_table");
+		pkTable.addEventListener("dragover", function(event) {
+			event.preventDefault(); // отменяем действие по умолчанию
+		}, false);
+
+		pkTable.addEventListener("drop", function(event) {
+			// отменяем действие по умолчанию
+			event.preventDefault();
+
+			var reader = new FileReader();
+			reader.onload = function(event) {
+				var content = event.target.result;
+				try {
+					var openpgp = window.openpgp;
+					var obj = openpgp.key.readArmored(content);
+					if (obj.keys[0].isPublic()) {
+						var ids = obj.keys[0].getUserIds()[0];
+						var email = ids.substr(ids.lastIndexOf(" ") + 1);
+						var name = ids.substr(0, ids.lastIndexOf(" "));
+						var jsonKey = "pk[" + name + ":" + email + "]";
+
+
+						chrome.runtime.sendMessage(chrome.runtime.id, {
+							action: "get",
+							key: jsonKey,
+							value:""
+						}, function(response) {
+							console.log(response.farewell);
+						});
+
+
+						chrome.runtime.sendMessage(chrome.runtime.id, {
+							action: "set",
+							key: jsonKey,
+							value: content
+						}, function(response) {
+							console.log(response.farewell);
+						});
+						// localStorage[jsonKey]=obj;
+
+					} else {
+						throw new Error("Is not a public key!");
+					}
+
+				} catch (e) {
+					console.log(e);
+				}
+
+			}
+
+			var files = event.dataTransfer.files;
+			var len = files.length;
+			for (var i = 0; i < len; i++) {
+
+				reader.readAsText(files[i]);
+
+				console.log("Filename: " + files[i].name);
+				console.log("Type: " + files[i].type);
+				console.log("Size: " + files[i].size + " bytes");
+			}
+
+		}, false);
+
+
+
 	} else if (id == "gen_opt") {
 
 		$("#generate").click(function(event) {
@@ -166,11 +258,22 @@ function initEvents(id) {
 					numBits: 4096,
 					passphrase: $("#subj_passphrase").val() //protects a private key
 				};
+
 				var openpgp = window.openpgp;
-				openpgp.generateKey(data).then(function(key) {
-					$("#gen_priv_key").val(key.privateKeyArmored);
-					$("#gen_pub_key").val(key.publicKeyArmored);
-				});
+
+				$("#preloader-container").removeClass('hidden');
+
+				try {
+					openpgp.generateKey(data).then(function(key) {
+						$("#gen_priv_key").val(key.privateKeyArmored);
+						$("#gen_pub_key").val(key.publicKeyArmored);
+
+						$("#preloader-container").addClass('hidden');
+					});
+				} catch (error) {
+					$("#preloader-container").addClass('hidden');
+					alert(error);
+				}
 			}
 		});
 
@@ -181,7 +284,7 @@ function initEvents(id) {
 			}
 		});
 
-		$("[input],[type='text']").change(function(event) {
+		$("[input],[type='text'],[type='password']").change(function(event) {
 			if (event.currentTarget.value == "") {
 				matchAsEmpty(event.currentTarget);
 			} else {
@@ -195,7 +298,7 @@ function initEvents(id) {
 
 function validateForm(event) {
 	result = true;
-	$("[input],[type='text']").each(function(index, el) {
+	$("[input],[type='text'],[type='password']").each(function(index, el) {
 		if (el.value.length == 0) {
 			result = false;
 			matchAsEmpty(el);
@@ -206,6 +309,10 @@ function validateForm(event) {
 	return result;
 }
 
+
+function addPKFile() {
+
+}
 
 function matchAsEmpty(el, cancel = false) {
 	if (cancel) {

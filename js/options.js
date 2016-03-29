@@ -44,6 +44,9 @@ function getContext(id, data) {
 			[{
 				title: "Type of encryption",
 				content: getContent("enc_type", data)
+			}, {
+				title: "",
+				content: getContent("my_keys", data)
 			}]
 		];
 	} else if (id == "keys_opt") {
@@ -168,6 +171,32 @@ function getContent(name, data = undefined) {
 				</div>
 		</div>
 		`;
+	} else if (name == "my_keys") {
+		var text = `
+		<div class="form-group">
+			<div class="col-md-5">
+				<label for="my_priv_key" class="control-label">Private key:</label>
+				<textarea class="form-control gen-key-text" rows="5" id="my_priv_key" readonly>%priv_key%</textarea>
+			</div>
+			<div class="col-md-5">
+				<label for="my_pub_key" class="control-label">Public key:</label>
+				<textarea class="form-control gen-key-text" rows="5" id="my_pub_key" readonly>%pub_key%</textarea>
+			</div>			
+		</div>
+		<div class="form-group btn-group col-md-5">
+			<input type="reset" class="btn btn-primary" id="clear_my_keys" value="Clear"></input>
+		</div>`;
+
+		if (data != undefined && data.hasOwnProperty("MyKeys")) {
+			text = text.replace("%priv_key%", data.MyKeys.private_key);
+			text = text.replace("%pub_key%", data.MyKeys.public_key);
+		} else {
+			text = text.replace("%priv_key%", "");
+			text = text.replace("%pub_key%", "");
+		}
+
+		return text;
+
 	} else if (name == "about") {
 		return `Anton Zaslavskii`;
 	}
@@ -223,12 +252,31 @@ function initEvents(id) {
 			})
 		});
 
+		var myPubKeyText = document.getElementById("my_pub_key");
+		var myPrivKeyText = document.getElementById("my_priv_key");
+
+		myPubKeyText.addEventListener("dragover", function(event) {
+			event.preventDefault(); // отменяем действие по умолчанию
+		}, false);
+
+		myPrivKeyText.addEventListener("dragover", function(event) {
+			event.preventDefault(); // отменяем действие по умолчанию
+		}, false);
+
+		myPrivKeyText.addEventListener("drop", function(event) {
+			dropFiles(event, addMyPrivKey);
+		}, false);
+
+		myPubKeyText.addEventListener("drop", function(event) {
+			dropFiles(event, addMyPubKey);
+		}, false);
+
+		$("#clear_my_keys").click(function(event) {
+			clearKeys("MyKeys","main_opt");
+		});
+
+
 	} else if (id == "keys_opt") {
-
-		// $("#add_file").click(function(event) {
-		// 	addPKFile();
-		// });
-
 
 		$("#del").click(function(event) {
 			$(".btn-group-pk").children('input').each(function(index, el) {
@@ -267,7 +315,7 @@ function initEvents(id) {
 				modal.modal();
 			});
 			var keys = [];
-			$("[id=tr_pk],[class=danger]").each(function(index, el) {
+			$("[id=tr_pk][class=danger]").each(function(index, el) {
 				keys.push($(el).children('#td_name').text() + ":" + $(el).children('#td_email').text());
 			});
 			removePK(keys);
@@ -276,7 +324,7 @@ function initEvents(id) {
 		});
 
 		$("#clear").click(function(event) {
-			clearPK();
+			clearKeys("PublicKeys","keys_opt");
 		});
 
 		//drag n drop files
@@ -465,25 +513,79 @@ function removePK(keys) {
 	});
 }
 
-
-function clearPK() {
+function clearKeys(type,pill){
 	chrome.runtime.sendMessage(chrome.runtime.id, {
 		action: "get",
-		data: "PublicKeys"
+		data: "type"
 	}, function(response) {
-		var publicKeys = response.result["PublicKeys"] || {};
-		for (key in publicKeys) {
-			delete publicKeys[key];
+		var keys = response.result[type] || {};
+		for (key in keys) {
+			delete keys[key];
 		}
+		var data = {};
+		data[type] = keys;
 
 		chrome.runtime.sendMessage(chrome.runtime.id, {
 			action: "set",
-			data: {
-				"PublicKeys": publicKeys
-			}
+			data: data
 		}, function(response) {
 			console.log(response.result);
-			changePill("keys_opt");
+			changePill(pill);
+		})
+	});
+}
+
+function dropFiles(event, callback) {
+	// отменяем действие по умолчанию
+	event.preventDefault();
+
+	var reader = new FileReader();
+	reader.onload = function(event) {
+		var content = event.target.result;
+		try {
+			callback(content);
+		} catch (e) {
+			console.log(e);
+		}
+	}
+
+	var files = event.dataTransfer.files;
+	var len = files.length;
+	for (var i = 0; i < len; i++) {
+
+		reader.readAsText(files[i]);
+
+		console.log("Filename: " + files[i].name);
+		console.log("Type: " + files[i].type);
+		console.log("Size: " + files[i].size + " bytes");
+	}
+}
+
+function addMyPubKey(text) {
+	addMyKey(text, "public_key");
+}
+
+function addMyPrivKey(text) {
+	addMyKey(text, "private_key");
+}
+
+function addMyKey(text, type) {
+	chrome.runtime.sendMessage(chrome.runtime.id, {
+		action: "get",
+		data: "MyKeys"
+	}, function(response) {
+		var myKeys = response.result["MyKeys"] || {};
+		myKeys[type] = text;
+		var data = {
+			"MyKeys": myKeys
+		};
+
+		chrome.runtime.sendMessage(chrome.runtime.id, {
+			action: "set",
+			data: data
+		}, function(response) {
+			console.log(response.result);
+			changePill("main_opt")
 		})
 	});
 }

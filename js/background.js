@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener(
 function getNeededProps(id) {
 	switch (id) {
 		case "main_opt":
-			return ["Mode"];
+			return ["Mode","MyKeys"];
 			break;
 		case "keys_opt":
 			return ["PublicKeys"];

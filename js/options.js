@@ -1,19 +1,29 @@
 $(document).ready(function() {
-	ChangePill("main_opt");
+	changePill("main_opt");
 
 	$("#menu").children('ul').children('li').click(function(event) {
-		ChangePill(event.currentTarget.id);
+		changePill(event.currentTarget.id);
 	});
 
 });
 
-function ChangePill(id) {
+function changePill(id) {
+	chrome.runtime.sendMessage(chrome.runtime.id, {
+		action: "get",
+		id: id
+	}, function(response) {
+		changePillWithData(response.id, response.result);
+	})
+
+}
+
+function changePillWithData(id, dataFromStorage) {
 	$(".active").removeClass('active');
 	var element = $("#" + id + "").addClass('active');
 
 	$("#current-settings").remove();
 
-	var context = getContext(id);
+	var context = getContext(id, dataFromStorage);
 
 	var data = {
 		title: context[0].main_title,
@@ -26,14 +36,14 @@ function ChangePill(id) {
 	initEvents(id);
 }
 
-function getContext(id) {
+function getContext(id, data) {
 	if (id == "main_opt") {
 		return [{
 				main_title: "Main settings"
 			},
 			[{
 				title: "Type of encryption",
-				content: getContent("enc_type")
+				content: getContent("enc_type", data)
 			}]
 		];
 	} else if (id == "keys_opt") {
@@ -42,7 +52,7 @@ function getContext(id) {
 			},
 			[{
 				title: "",
-				content: getContent("pub_keys")
+				content: getContent("pub_keys", data)
 			}]
 		];
 	} else if (id == "gen_opt") {
@@ -69,20 +79,52 @@ function getContext(id) {
 	}
 }
 
-function getContent(name) {
+function getContent(name, data = undefined) {
 	if (name == "enc_type") {
-		return `
+
+		text = `
 		<div id = "enc_type">
 		<div class="form-group">
 			<div class="radio enc-type">
-	  			<label><input type="radio" name="optradio">Passpharse</label>
+	  			<label><input %state_mode_pass% id="mode_pass" class="mode" type="radio" name="optradio">Passpharse</label>
 			</div>
 			<div class="radio enc-type">
-  				<label><input checked type="radio" name="optradio">PGP keys</label>
+  				<label><input %state_mode_pgp% id="mode_pgp" class="mode" type="radio" name="optradio">PGP keys</label>
   			</div>
   		</div></div>`;
+
+		if (data != undefined && data.hasOwnProperty("Mode")) {
+			text = text.replace("%state_mode_pass%", (data.Mode == "mode_pass" ? "checked" : ""));
+			text = text.replace("%state_mode_pgp%", (data.Mode == "mode_pgp" ? "checked" : ""));
+		} else {
+			text = text.replace("%state_mode_pass%", "");
+			text = text.replace("%state_mode_pgp%", "");
+		}
+
+		return text;
+
 	} else if (name == "pub_keys") {
-		return getTableOfPubs();
+
+		text = getPKTable();
+
+		var tableRows = "";
+		if (data != undefined && data.hasOwnProperty("PublicKeys")) {
+			var publicKeys = data.PublicKeys;
+			for (ids in publicKeys) {
+				var name = ids.substring(0, ids.indexOf(":"));
+				var email = ids.substring(ids.indexOf(":") + 1);
+
+				tableRows += `
+			      <tr id="tr_pk">
+			        <td id="td_name">` + name + `</td>
+			        <td id="td_email">` + email + `</td>
+			        <td id="td_pk">` + publicKeys[ids] + `</td>
+			      </tr>	`;
+			}
+		}
+
+		return text.replace("%rows%", tableRows);
+
 	} else if (name == "subject") {
 		return `<div id="subject">
 			<div class="form-group">
@@ -131,10 +173,9 @@ function getContent(name) {
 	}
 }
 
-function getTableOfPubs() {
-	// some actions with local storage...
+function getPKTable() {
 
-	return `
+	var table = `
 	<div class="form-group" id="pk_table">
 		<div class="container col-md-12">       
 	  		<table class="table table-hover" id="pk_table">
@@ -145,40 +186,98 @@ function getTableOfPubs() {
 	        			<th>Public key</th>
 	      			</tr>
 	    		</thead>
-	    		<tbody>
+	    		<tbody> %rows%
 	    		</tbody>
 	  		</table>
 		</div>
 	</div>
-	<div class="form-group btn-group col-md-5">
-		<div class="btn-group">
-			<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
-	    		Add <span class="caret"></span></button>
-	    	<ul class="dropdown-menu" role="menu">
-	      		<li><a id="add_text" href="#">Text</a></li>
-	      		<li><a id="add_file" href="#">File</a></li>
-	    	</ul>
-  		</div>
-  		<input type="button" class="btn btn-primary" id="modify" value="Modify"></input>		
+	<div class="form-group btn-group col-md-5 btn-group-pk">		
+  		<input type="button" class="btn btn-primary" id="add" value="Add"></input>		
+  		<input type="button" class="btn btn-primary" id="clear" value="Clear"></input>		
+  		<input type="button" class="btn btn-danger hidden" id="confirm" value="Confirm"></input>
 		<input type="button" class="btn btn-danger" id="del" value="Delete"></input>		
 	</div>
 	`;
+
+	return table;
 }
-// <input type="button" class="btn btn-success" id="add" value="Add"></input>
+
 
 function initEvents(id) {
 	if (id == "main_opt") {
 
+		$(".mode").change(function(event) {
+			$(".mode:checked").each(function(index, el) {
+				el.checked = false;
+			});
+			event.currentTarget.checked = true;
+
+			var data = {
+				Mode: event.currentTarget.id
+			};
+			chrome.runtime.sendMessage(chrome.runtime.id, {
+				action: "set",
+				data: data
+			}, function(response) {
+				console.log(response);
+			})
+		});
+
 	} else if (id == "keys_opt") {
 
-		$("#add_text").click(function(event) {
+		// $("#add_file").click(function(event) {
+		// 	addPKFile();
+		// });
+
+
+		$("#del").click(function(event) {
+			$(".btn-group-pk").children('input').each(function(index, el) {
+				$(el).addClass('hidden');
+			});
+
+			$("#confirm").removeClass('hidden');
+
+			$("[id=tr_pk]").unbind('click');
+			$("[id=tr_pk]").click(function(event) {
+				if ($(event.currentTarget).hasClass('danger')) {
+					$(event.currentTarget).removeClass('danger');
+				} else {
+					$(event.currentTarget).addClass('danger');
+				}
+			});
+		});
+
+
+		$("#confirm").click(function(event) {
+			$(".btn-group-pk").children('input').each(function(index, el) {
+				$(el).removeClass('hidden');
+			});
+
+			$("#confirm").addClass('hidden');
+
+			$("[id=tr_pk]").unbind('click');
+			$("[id=tr_pk]").click(function(event) {
+				var row = $(event.currentTarget);
+				var textPK = $(event.currentTarget).children('#td_pk').text();
+				var modal = $("#edit_modal");
+				$("#edit_name").text(row.children('#td_name').text());
+				$("#edit_email").text(row.children('#td_email').text());
+				$("#edit_field").text(textPK);
+
+				modal.modal();
+			});
+			var keys = [];
+			$("[id=tr_pk],[class=danger]").each(function(index, el) {
+				keys.push($(el).children('#td_name').text() + ":" + $(el).children('#td_email').text());
+			});
+			removePK(keys);
+
 
 		});
 
-		$("#add_file").click(function(event) {
-			addPKFile();
+		$("#clear").click(function(event) {
+			clearPK();
 		});
-
 
 		//drag n drop files
 		var pkTable = document.getElementById("pk_table");
@@ -194,37 +293,7 @@ function initEvents(id) {
 			reader.onload = function(event) {
 				var content = event.target.result;
 				try {
-					var openpgp = window.openpgp;
-					var obj = openpgp.key.readArmored(content);
-					if (obj.keys[0].isPublic()) {
-						var ids = obj.keys[0].getUserIds()[0];
-						var email = ids.substr(ids.lastIndexOf(" ") + 1);
-						var name = ids.substr(0, ids.lastIndexOf(" "));
-						var jsonKey = "pk[" + name + ":" + email + "]";
-
-
-						chrome.runtime.sendMessage(chrome.runtime.id, {
-							action: "get",
-							key: jsonKey,
-							value:""
-						}, function(response) {
-							console.log(response.farewell);
-						});
-
-
-						chrome.runtime.sendMessage(chrome.runtime.id, {
-							action: "set",
-							key: jsonKey,
-							value: content
-						}, function(response) {
-							console.log(response.farewell);
-						});
-						// localStorage[jsonKey]=obj;
-
-					} else {
-						throw new Error("Is not a public key!");
-					}
-
+					addNewPK(content);
 				} catch (e) {
 					console.log(e);
 				}
@@ -241,11 +310,26 @@ function initEvents(id) {
 				console.log("Type: " + files[i].type);
 				console.log("Size: " + files[i].size + " bytes");
 			}
-
 		}, false);
 
+		$("[id=tr_pk]").click(function(event) {
+			var row = $(event.currentTarget);
+			var textPK = $(event.currentTarget).children('#td_pk').text();
+			var modal = $("#edit_modal");
+			$("#edit_name").text(row.children('#td_name').text());
+			$("#edit_email").text(row.children('#td_email').text());
+			$("#edit_field").text(textPK);
 
+			modal.modal();
+		});
 
+		$("#close_span").click(function(event) {
+			$("#edit_modal").modal('hide');
+		});
+
+		$("#download_pk").click(function(event) {
+			saveTextAsFile("edit_field", "public_key(" + $("#edit_name").text() + ").txt");
+		});
 	} else if (id == "gen_opt") {
 
 		$("#generate").click(function(event) {
@@ -291,9 +375,7 @@ function initEvents(id) {
 				matchAsEmpty(event.currentTarget, true);
 			}
 		});
-	} else if (id == "about_opt") {
-		// alert('');
-	}
+	} else if (id == "about_opt") {}
 }
 
 function validateForm(event) {
@@ -309,14 +391,9 @@ function validateForm(event) {
 	return result;
 }
 
-
-function addPKFile() {
-
-}
-
 function matchAsEmpty(el, cancel = false) {
 	if (cancel) {
-		var container = $(el).closest('.form-group')
+		var container = $(el).closest('.form-group');
 		if (container.hasClass('has-error'))
 			container.removeClass('has-error');
 	} else
@@ -324,9 +401,89 @@ function matchAsEmpty(el, cancel = false) {
 }
 
 
+//add or update pk value
+function addNewPK(content) {
+	var openpgp = window.openpgp;
+	var obj = openpgp.key.readArmored(content);
+	if (obj.hasOwnProperty("err") && obj.err.length > 0) {
+		var errors = obj.err;
+		for (var i = 0; i < errors.length; i++) {
+			console.log(errors[i]);
+		}
+		alert("Something went wrong! Look for errors in log!")
+		return;
+	}
 
-//       <tr>
-//         <td>John</td>
-//         <td>Doe</td>
-//         <td>john@example.com</td>
-//       </tr>
+	if (obj.keys[0].isPublic()) {
+		var messageData = {};
+		var ids = obj.keys[0].getUserIds()[0];
+		var email = ids.substring(ids.lastIndexOf(" ") + 1);
+		var name = ids.substring(0, ids.lastIndexOf(" "));
+		var jsonKey = name + ":" + email.substring(1, email.length - 1);
+
+		chrome.runtime.sendMessage(chrome.runtime.id, {
+			action: "get",
+			data: "PublicKeys"
+		}, function(response) {
+			var publicKeys = response.result["PublicKeys"] || {};
+			publicKeys[jsonKey] = content;
+			chrome.runtime.sendMessage(chrome.runtime.id, {
+				action: "set",
+				data: {
+					"PublicKeys": publicKeys
+				}
+			}, function(response) {
+				console.log(response.result);
+				changePill("keys_opt");
+			})
+		});
+	} else {
+		throw new Error("Is not a public key!");
+	}
+}
+
+function removePK(keys) {
+	chrome.runtime.sendMessage(chrome.runtime.id, {
+		action: "get",
+		data: "PublicKeys"
+	}, function(response) {
+		var publicKeys = response.result["PublicKeys"] || {};
+		for (var i = 0; i < keys.length; i++) {
+			if (publicKeys.hasOwnProperty(keys[i])) {
+				delete publicKeys[keys[i]];
+			}
+		}
+		chrome.runtime.sendMessage(chrome.runtime.id, {
+			action: "set",
+			data: {
+				"PublicKeys": publicKeys
+			}
+		}, function(response) {
+			console.log(response.result);
+			changePill("keys_opt");
+		})
+	});
+}
+
+
+function clearPK() {
+	chrome.runtime.sendMessage(chrome.runtime.id, {
+		action: "get",
+		data: "PublicKeys"
+	}, function(response) {
+		var publicKeys = response.result["PublicKeys"] || {};
+		for (key in publicKeys) {
+			delete publicKeys[key];
+		}
+
+		chrome.runtime.sendMessage(chrome.runtime.id, {
+			action: "set",
+			data: {
+				"PublicKeys": publicKeys
+			}
+		}, function(response) {
+			console.log(response.result);
+			changePill("keys_opt");
+		})
+	});
+}

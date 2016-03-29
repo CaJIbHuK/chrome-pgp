@@ -3,10 +3,62 @@ chrome.runtime.onMessage.addListener(
 		console.log(sender.tab ?
 			"from a content script:" + sender.tab.url :
 			"from the extension");
+
 		if (request.action == "set") {
-			localStorage[request.key] = request.value;
-			sendResponse({farewell: "saved"});
-		}else if (request.action=="get") {
-			sendResponse({farewell:localStorage[request.key]});
+
+			chrome.storage.local.set(request.data, function() {
+				console.log("Saved:" + data.toString());
+			});
+
+			sendResponse({
+				result: "saved"
+			});
+
+		} else if (request.action == "get") {
+
+			if (request.hasOwnProperty("id")) {
+				chrome.storage.local.get(getNeededProps(request.id), function(items) {
+					sendResponse({
+						id: request.id,
+						result: items
+					});
+				});
+			} else {
+
+				chrome.storage.local.get(request.data, function(items) {
+					sendResponse({
+						result: items
+					});
+				});
+			}
+		} else if (request.action == "remove") {
+
+			chrome.storage.local.remove(request.data, function() {
+				sendResponse({
+					result: "removed"
+				});
+			});
+
 		}
+		return true;
 	});
+
+function getNeededProps(id) {
+	switch (id) {
+		case "main_opt":
+			return ["Mode"];
+			break;
+		case "keys_opt":
+			return ["PublicKeys"];
+			break;
+		case "gen_opts":
+			return [""];
+			break;
+		case "about_opt":
+			return [""];
+			break;
+		default:
+			return [""];
+			break;
+	}
+}

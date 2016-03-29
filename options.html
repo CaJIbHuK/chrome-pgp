@@ -21,6 +21,26 @@
 	</div>
 </div>
 
+<div class="modal fade" tabindex="-1" id="edit_modal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Public key</h4>
+      </div>
+      <div class="modal-body">
+        <span class="close" id="close_span">x</span>
+        <h3 class="label-modal" id="edit_name"></h3>
+        <h3 class="label-modal label-modal-email"><small id="edit_email"></small></h3>
+        <textarea rows="10" id="edit_field" readonly></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="download_pk" class="btn btn-success">Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="row">
 <div class="col-md-3" id="menu">
   <ul class="nav nav-pills nav-stacked">

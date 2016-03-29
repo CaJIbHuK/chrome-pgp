@@ -3,6 +3,29 @@
 		margin-left: 10px;
 	}
 
+.table {
+  table-layout:fixed;
+}
+
+.label-modal{
+	padding: 0px;
+	margin: 0px;
+}
+
+.label-modal-email{
+	margin-bottom: 5px;
+}
+
+#edit_field{
+	width: 100%;
+	resize: vertical;
+}
+
+.table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 	#loader{
 		height: 30px;
 		width: 30px;

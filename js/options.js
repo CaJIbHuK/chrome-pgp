@@ -105,7 +105,6 @@ function getContent(name, data = undefined) {
 		}
 
 		return text;
-
 	} else if (name == "pub_keys") {
 
 		text = getPKTable();
@@ -127,7 +126,6 @@ function getContent(name, data = undefined) {
 		}
 
 		return text.replace("%rows%", tableRows);
-
 	} else if (name == "subject") {
 		return `<div id="subject">
 			<div class="form-group">
@@ -185,6 +183,7 @@ function getContent(name, data = undefined) {
 		</div>
 		<div class="form-group btn-group col-md-5">
 			<input type="reset" class="btn btn-primary" id="clear_my_keys" value="Clear"></input>
+			<input type="button" class="btn btn-success" id="save_my_keys" value="Save"></input>
 		</div>`;
 
 		if (data != undefined && data.hasOwnProperty("MyKeys")) {
@@ -196,10 +195,9 @@ function getContent(name, data = undefined) {
 		}
 
 		return text;
-
 	} else if (name == "about") {
 		return `Anton Zaslavskii`;
-	}
+	};
 }
 
 function getPKTable() {
@@ -221,7 +219,6 @@ function getPKTable() {
 		</div>
 	</div>
 	<div class="form-group btn-group col-md-5 btn-group-pk">		
-  		<input type="button" class="btn btn-primary" id="add" value="Add"></input>		
   		<input type="button" class="btn btn-primary" id="clear" value="Clear"></input>		
   		<input type="button" class="btn btn-danger hidden" id="confirm" value="Confirm"></input>
 		<input type="button" class="btn btn-danger" id="del" value="Delete"></input>		
@@ -272,10 +269,15 @@ function initEvents(id) {
 		}, false);
 
 		$("#clear_my_keys").click(function(event) {
-			clearKeys("MyKeys","main_opt");
+			clearKeys("MyKeys", "main_opt");
 		});
 
-
+		$("#save_my_keys").click(function(event) {
+			if ($("#my_priv_key").val() && $("#my_pub_key").val()) {
+				saveTextAsFile("my_priv_key", "my_private_key.txt");
+				saveTextAsFile("my_pub_key", "my_public_key.txt");
+			}
+		});
 	} else if (id == "keys_opt") {
 
 		$("#del").click(function(event) {
@@ -324,7 +326,7 @@ function initEvents(id) {
 		});
 
 		$("#clear").click(function(event) {
-			clearKeys("PublicKeys","keys_opt");
+			clearKeys("PublicKeys", "keys_opt");
 		});
 
 		//drag n drop files
@@ -513,7 +515,7 @@ function removePK(keys) {
 	});
 }
 
-function clearKeys(type,pill){
+function clearKeys(type, pill) {
 	chrome.runtime.sendMessage(chrome.runtime.id, {
 		action: "get",
 		data: "type"

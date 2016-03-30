@@ -7,9 +7,28 @@
   table-layout:fixed;
 }
 
+
+
 .label-modal{
 	padding: 0px;
 	margin: 0px;
+}
+
+.dropdown-search-ul{
+	padding-left: 0;
+}
+
+.dropdown-menu>li>a {
+	    padding: 3px 10px;
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-search {
+	padding-left: 10px;
+	padding-right: 10px;
 }
 
 .label-modal-email{

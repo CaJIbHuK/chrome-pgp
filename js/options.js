@@ -14,10 +14,10 @@ function changePill(id) {
 	}, function(response) {
 		changePillWithData(response.id, response.result);
 	})
-
 }
 
 function changePillWithData(id, dataFromStorage) {
+
 	$(".active").removeClass('active');
 	var element = $("#" + id + "").addClass('active');
 
@@ -29,6 +29,7 @@ function changePillWithData(id, dataFromStorage) {
 		title: context[0].main_title,
 		settings: context[1]
 	};
+
 	var templateScript = $("#template").html();
 	var template = Handlebars.compile(templateScript);
 	$("#main_settings").append(template(data));
@@ -83,6 +84,7 @@ function getContext(id, data) {
 }
 
 function getContent(name, data = undefined) {
+
 	if (name == "enc_type") {
 
 		text = `
@@ -105,6 +107,7 @@ function getContent(name, data = undefined) {
 		}
 
 		return text;
+
 	} else if (name == "pub_keys") {
 
 		text = getPKTable();
@@ -126,7 +129,9 @@ function getContent(name, data = undefined) {
 		}
 
 		return text.replace("%rows%", tableRows);
+
 	} else if (name == "subject") {
+
 		return `<div id="subject">
 			<div class="form-group">
 				<label for="subj_name" class="control-label col-md-2">Name:</label>
@@ -146,8 +151,10 @@ function getContent(name, data = undefined) {
 		 			<input type="password" class="form-control" id="subj_passphrase" placeholder="key">
 			 	</div>
 		 	</div>
-		 </div>`
+		 </div>`;
+
 	} else if (name == "key_gen") {
+
 		return `
 		<div class="form-group">
 			<div class="col-md-5">
@@ -169,7 +176,9 @@ function getContent(name, data = undefined) {
 				</div>
 		</div>
 		`;
+
 	} else if (name == "my_keys") {
+
 		var text = `
 		<div class="form-group">
 			<div class="col-md-5">
@@ -195,7 +204,9 @@ function getContent(name, data = undefined) {
 		}
 
 		return text;
+
 	} else if (name == "about") {
+
 		return `Anton Zaslavskii`;
 	};
 }
@@ -220,18 +231,18 @@ function getPKTable() {
 	</div>
 	<div class="form-group btn-group col-md-5 btn-group-pk">		
   		<input type="button" class="btn btn-primary" id="clear" value="Clear"></input>		
-  		<input type="button" class="btn btn-danger hidden" id="confirm" value="Confirm"></input>
-		<input type="button" class="btn btn-danger" id="del" value="Delete"></input>		
+  		<input type="button" class="btn btn-danger hidden" id="confirm" value="Delete"></input>
+		<input type="button" class="btn btn-primary" id="del" value="Select"></input>		
 	</div>
 	`;
 
 	return table;
 }
 
-
 function initEvents(id) {
 	if (id == "main_opt") {
 
+		//enc mode change event
 		$(".mode").change(function(event) {
 			$(".mode:checked").each(function(index, el) {
 				el.checked = false;
@@ -249,6 +260,7 @@ function initEvents(id) {
 			})
 		});
 
+		//my keys events
 		var myPubKeyText = document.getElementById("my_pub_key");
 		var myPrivKeyText = document.getElementById("my_priv_key");
 
@@ -278,8 +290,10 @@ function initEvents(id) {
 				saveTextAsFile("my_pub_key", "my_public_key.txt");
 			}
 		});
+
 	} else if (id == "keys_opt") {
 
+		//work with PK table
 		$("#del").click(function(event) {
 			$(".btn-group-pk").children('input').each(function(index, el) {
 				$(el).addClass('hidden');
@@ -296,7 +310,6 @@ function initEvents(id) {
 				}
 			});
 		});
-
 
 		$("#confirm").click(function(event) {
 			$(".btn-group-pk").children('input').each(function(index, el) {
@@ -321,8 +334,6 @@ function initEvents(id) {
 				keys.push($(el).children('#td_name').text() + ":" + $(el).children('#td_email').text());
 			});
 			removePK(keys);
-
-
 		});
 
 		$("#clear").click(function(event) {
@@ -336,7 +347,7 @@ function initEvents(id) {
 		}, false);
 
 		pkTable.addEventListener("drop", function(event) {
-			// отменяем действие по умолчанию
+
 			event.preventDefault();
 
 			var reader = new FileReader();
@@ -347,7 +358,6 @@ function initEvents(id) {
 				} catch (e) {
 					console.log(e);
 				}
-
 			}
 
 			var files = event.dataTransfer.files;
@@ -362,6 +372,7 @@ function initEvents(id) {
 			}
 		}, false);
 
+		//modal with details about keys
 		$("[id=tr_pk]").click(function(event) {
 			var row = $(event.currentTarget);
 			var textPK = $(event.currentTarget).children('#td_pk').text();
@@ -377,12 +388,16 @@ function initEvents(id) {
 			$("#edit_modal").modal('hide');
 		});
 
+		$("#download_pk").unbind('click');
 		$("#download_pk").click(function(event) {
 			saveTextAsFile("edit_field", "public_key(" + $("#edit_name").text() + ").txt");
 		});
+
 	} else if (id == "gen_opt") {
 
+		//generation of keys
 		$("#generate").click(function(event) {
+
 			if (validateForm(event)) {
 				data = {
 					userIds: [{
@@ -411,6 +426,7 @@ function initEvents(id) {
 			}
 		});
 
+		//saving of keys (downloading)
 		$("#save").click(function(event) {
 			if ($("#gen_priv_key").val() && $("#gen_pub_key").val()) {
 				saveTextAsFile("gen_priv_key", "private_key.txt");
@@ -418,6 +434,7 @@ function initEvents(id) {
 			}
 		});
 
+		//check wether required fields are empty
 		$("[input],[type='text'],[type='password']").change(function(event) {
 			if (event.currentTarget.value == "") {
 				matchAsEmpty(event.currentTarget);
@@ -425,6 +442,7 @@ function initEvents(id) {
 				matchAsEmpty(event.currentTarget, true);
 			}
 		});
+
 	} else if (id == "about_opt") {}
 }
 
@@ -438,6 +456,7 @@ function validateForm(event) {
 			matchAsEmpty(el, true);
 		}
 	})
+
 	return result;
 }
 
@@ -450,11 +469,11 @@ function matchAsEmpty(el, cancel = false) {
 		$(el).closest('.form-group').addClass('has-error');
 }
 
-
 //add or update pk value
 function addNewPK(content) {
 	var openpgp = window.openpgp;
 	var obj = openpgp.key.readArmored(content);
+
 	if (obj.hasOwnProperty("err") && obj.err.length > 0) {
 		var errors = obj.err;
 		for (var i = 0; i < errors.length; i++) {
@@ -484,6 +503,7 @@ function addNewPK(content) {
 				}
 			}, function(response) {
 				console.log(response.result);
+				clearCurrentSubject();
 				changePill("keys_opt");
 			})
 		});
@@ -503,6 +523,7 @@ function removePK(keys) {
 				delete publicKeys[keys[i]];
 			}
 		}
+
 		chrome.runtime.sendMessage(chrome.runtime.id, {
 			action: "set",
 			data: {
@@ -510,6 +531,7 @@ function removePK(keys) {
 			}
 		}, function(response) {
 			console.log(response.result);
+			clearCurrentSubject();
 			changePill("keys_opt");
 		})
 	});
@@ -532,13 +554,14 @@ function clearKeys(type, pill) {
 			data: data
 		}, function(response) {
 			console.log(response.result);
+			clearCurrentSubject();
 			changePill(pill);
 		})
 	});
 }
 
 function dropFiles(event, callback) {
-	// отменяем действие по умолчанию
+
 	event.preventDefault();
 
 	var reader = new FileReader();
@@ -563,14 +586,6 @@ function dropFiles(event, callback) {
 	}
 }
 
-function addMyPubKey(text) {
-	addMyKey(text, "public_key");
-}
-
-function addMyPrivKey(text) {
-	addMyKey(text, "private_key");
-}
-
 function addMyKey(text, type) {
 	chrome.runtime.sendMessage(chrome.runtime.id, {
 		action: "get",
@@ -590,4 +605,25 @@ function addMyKey(text, type) {
 			changePill("main_opt")
 		})
 	});
+}
+
+function addMyPubKey(text) {
+	addMyKey(text, "public_key");
+}
+
+function addMyPrivKey(text) {
+	addMyKey(text, "private_key");
+}
+
+function clearCurrentSubject() {
+
+	chrome.runtime.sendMessage(chrome.runtime.id, {
+		action: "set",
+		data: {
+			"CurrentSubject": null
+		}
+	}, function(response) {
+		console.log(response.result);
+	})
+
 }

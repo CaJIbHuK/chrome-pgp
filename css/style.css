@@ -1,0 +1,123 @@
+.form-popup {
+		margin-right: 10px;
+		margin-left: 10px;
+}
+
+.table {
+  table-layout:fixed;
+}
+
+
+.input-group.input-group-unstyled{
+	width: 100%;
+}
+.input-group.input-group-unstyled input.form-control {
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+.input-group-unstyled .input-group-addon {
+    border-radius: 4px;
+    border: 0px;
+    background-color: transparent;
+    padding: 0;
+    padding-left: 10px;
+}
+.label-modal{
+	padding: 0px;
+	margin: 0px;
+}
+
+.dropdown-search-ul{
+	padding-left: 0;
+}
+
+.dropdown-menu>li>a {
+	    padding: 3px 10px;
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-search {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.label-modal-email{
+	margin-bottom: 5px;
+}
+
+#edit_field{
+	width: 100%;
+	resize: vertical;
+}
+
+.table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+	#loader{
+		height: 30px;
+		width: 30px;
+	}
+
+	.btn-gen {
+		width: 25%;
+	}
+
+	.form-horizontal .control-label{
+		text-align: left;
+	}
+
+	.gen-key-text{
+		resize: vertical;
+	}
+
+	.settings-container {
+		margin-left: 30px;
+	}
+
+	.enc-type{
+		margin-left: 20px;
+	}
+
+	ul {
+		list-style-type: none;
+	}
+
+	#key{
+		width: 200px;
+	}
+
+	#result{
+		width: 200px;
+		padding-bottom: 10px;
+		resize: vertical;
+	}
+
+	#encrypt{
+		margin-bottom: 10px;
+	}
+
+	#decrypt{
+		margin-bottom: 10px;
+	}
+
+	.btn-popup{
+		width: 50%;
+	}
+
+	.options_header{
+		font-size: 25px;	
+	}
+
+	.nav{
+		font-size: 20px;
+	}
+
+	#HKP_SRV{
+		width: 50%;
+	}

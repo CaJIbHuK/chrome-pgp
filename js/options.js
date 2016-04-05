@@ -121,6 +121,7 @@ function getContent(name, data = undefined) {
 
 				tableRows += `
 			      <tr id="tr_pk">
+			      	<td id="td_check" class="check-box hidden"></td>
 			        <td id="td_name">` + name + `</td>
 			        <td id="td_email">` + email + `</td>
 			        <td id="td_pk">` + publicKeys[ids] + `</td>
@@ -219,6 +220,7 @@ function getPKTable() {
 	  		<table class="table table-hover" id="pk_table">
 	    		<thead>
 	      			<tr>
+	      				<th id="th_check" class="hidden"></th>
 	        			<th>Name</th>
 			        	<th>Email</th>
 	        			<th>Public key</th>
@@ -231,8 +233,9 @@ function getPKTable() {
 	</div>
 	<div class="form-group btn-group col-md-5 btn-group-pk">		
   		<input type="button" class="btn btn-primary" id="clear" value="Clear"></input>		
-  		<input type="button" class="btn btn-danger hidden" id="confirm" value="Delete"></input>
-		<input type="button" class="btn btn-primary" id="del" value="Select"></input>		
+  		<input type="button" class="btn btn-primary hidden" id="cancel" value="Cancel"></input>
+  		<input type="button" class="btn btn-danger hidden" id="del" value="Delete"></input>
+		<input type="button" class="btn btn-primary" id="select" value="Select"></input>		
 	</div>
 	`;
 
@@ -294,47 +297,48 @@ function initEvents(id) {
 	} else if (id == "keys_opt") {
 
 		//work with PK table
-		$("#del").click(function(event) {
+		$("#select").click(function(event) {
 			$(".btn-group-pk").children('input').each(function(index, el) {
 				$(el).addClass('hidden');
 			});
 
-			$("#confirm").removeClass('hidden');
+			$("#del").removeClass('hidden');
+			$("#cancel").removeClass('hidden');
 
+			$("[id=td_check]").removeClass('hidden');
+			$("[id=td_check]").html("<span class='glyphicon glyphicon-ok grey'></span>");
+			$("#th_check").removeClass('hidden');
+
+			$("[id=tr_pk]").addClass('warning');
 			$("[id=tr_pk]").unbind('click');
 			$("[id=tr_pk]").click(function(event) {
 				if ($(event.currentTarget).hasClass('danger')) {
 					$(event.currentTarget).removeClass('danger');
+					$(event.currentTarget).children('#td_check').html("<span class='glyphicon glyphicon-ok grey'></span>");
 				} else {
 					$(event.currentTarget).addClass('danger');
+					$(event.currentTarget).children('#td_check').html("");
+					$(event.currentTarget).children('#td_check').html("<span class='glyphicon glyphicon-ok black'></span>");
 				}
 			});
+
 		});
 
-		$("#confirm").click(function(event) {
-			$(".btn-group-pk").children('input').each(function(index, el) {
-				$(el).removeClass('hidden');
-			});
+		$("#del").click(function(event) {
+			exitEditMode();
 
-			$("#confirm").addClass('hidden');
-
-			$("[id=tr_pk]").unbind('click');
-			$("[id=tr_pk]").click(function(event) {
-				var row = $(event.currentTarget);
-				var textPK = $(event.currentTarget).children('#td_pk').text();
-				var modal = $("#edit_modal");
-				$("#edit_name").text(row.children('#td_name').text());
-				$("#edit_email").text(row.children('#td_email').text());
-				$("#edit_field").text(textPK);
-
-				modal.modal();
-			});
 			var keys = [];
-			$("[id=tr_pk][class=danger]").each(function(index, el) {
+			$("[id=tr_pk][class*=danger]").each(function(index, el) {
 				keys.push($(el).children('#td_name').text() + ":" + $(el).children('#td_email').text());
 			});
 			removePK(keys);
 		});
+
+		$("#cancel").click(function(event) {
+			exitEditMode();
+			changePill("keys_opt");
+		});
+
 
 		$("#clear").click(function(event) {
 			clearKeys("PublicKeys", "keys_opt");
@@ -391,6 +395,12 @@ function initEvents(id) {
 		$("#download_pk").unbind('click');
 		$("#download_pk").click(function(event) {
 			saveTextAsFile("edit_field", "public_key(" + $("#edit_name").text() + ").txt");
+		});
+
+		$("#delete_pk").unbind('click');
+		$("#delete_pk").click(function(event) {
+			removePK([$("#edit_name").text() + ":" + $("#edit_email").text()]);
+			$("#edit_modal").modal('hide');
 		});
 
 	} else if (id == "gen_opt") {
@@ -625,5 +635,28 @@ function clearCurrentSubject() {
 	}, function(response) {
 		console.log(response.result);
 	})
+
+}
+
+function exitEditMode() {
+
+	$(".btn-group-pk").children('input').each(function(index, el) {
+		$(el).removeClass('hidden');
+	});
+
+	$("#del").addClass('hidden');
+	$("#cancel").addClass('hidden');
+
+	$("[id=tr_pk]").unbind('click');
+	$("[id=tr_pk]").click(function(event) {
+		var row = $(event.currentTarget);
+		var textPK = $(event.currentTarget).children('#td_pk').text();
+		var modal = $("#edit_modal");
+		$("#edit_name").text(row.children('#td_name').text());
+		$("#edit_email").text(row.children('#td_email').text());
+		$("#edit_field").text(textPK);
+
+		modal.modal();
+	});
 
 }

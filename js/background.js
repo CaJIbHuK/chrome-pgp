@@ -24,7 +24,6 @@ chrome.runtime.onMessage.addListener(
 					});
 				});
 			} else {
-
 				chrome.storage.local.get(request.data, function(items) {
 					sendResponse({
 						result: items
@@ -33,12 +32,13 @@ chrome.runtime.onMessage.addListener(
 			}
 		} else if (request.action == "remove") {
 
+
+
 			chrome.storage.local.remove(request.data, function() {
 				sendResponse({
 					result: "removed"
 				});
 			});
-
 		}
 		return true;
 	});
@@ -46,19 +46,14 @@ chrome.runtime.onMessage.addListener(
 function getNeededProps(id) {
 	switch (id) {
 		case "main_opt":
-			return ["Mode","MyKeys"];
-			break;
+			return ["Mode", "MyKeys"];
 		case "keys_opt":
 			return ["PublicKeys"];
-			break;
 		case "gen_opts":
 			return [""];
-			break;
 		case "about_opt":
 			return [""];
-			break;
 		default:
 			return [""];
-			break;
 	}
 }

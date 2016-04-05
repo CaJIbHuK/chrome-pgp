@@ -7,6 +7,32 @@
   table-layout:fixed;
 }
 
+.check-box{
+	width: 5%;
+}
+
+#th_check{
+	width: 5%;
+}
+
+#cancel{
+	border-bottom-left-radius:5px;
+	border-top-left-radius:5px;
+}
+
+#del{
+	border-bottom-right-radius:5px;
+	border-top-right-radius:5px;
+}
+
+#save{
+	border-bottom-right-radius:5px;
+	border-top-right-radius:5px;	
+}
+
+.grey{
+	color:#CECECE;
+}
 
 .input-group.input-group-unstyled{
 	width: 100%;

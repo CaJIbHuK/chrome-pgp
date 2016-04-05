@@ -5,27 +5,28 @@ $(function() {
 
 function EncDec(actionType, data, mode) {
 
-  var options = getOptions(actionType, mode);
+  getOptions(actionType, mode, function(opts) {
 
-  if (actionType == "encrypt") {
+    if (actionType == "encrypt") {
 
-    options.data = data;
+      opts.data = data;
 
-    openpgp.encrypt(options).then(function(ciphertext) {
-      result = ciphertext.data;
-      $('#result').val(result.replace("\nComment: http://openpgpjs.org", ""));
-    });
-
-  } else if (actionType == "decrypt") {
-
-    options.message = openpgp.message.readArmored(data),
-
-      openpgp.decrypt(options).then(function(plaintext) {
-        result = plaintext.data;
-        $('#result').val(result);
+      openpgp.encrypt(opts).then(function(ciphertext) {
+        result = ciphertext.data;
+        $('#result').val(result.replace("\nComment: http://openpgpjs.org", ""));
       });
 
-  }
+    } else if (actionType == "decrypt") {
+
+      opts.message = openpgp.message.readArmored(data),
+
+        openpgp.decrypt(opts).then(function(plaintext) {
+          result = plaintext.data;
+          $('#result').val(result);
+        });
+
+    }
+  });
 }
 
 function setEncType() {
@@ -114,12 +115,12 @@ function initPGPEvents() {
         console.log(b);
         console.log(indexB);
 
-
-        if (indexA==-1 && indexB==-1)
+        //fix
+        if (indexA == -1 && indexB == -1)
           return 0;
-        if (indexA==-1)
+        if (indexA == -1)
           return 1;
-        if (indexB==-1)
+        if (indexB == -1)
           return -1;
 
         return indexA - indexB;
@@ -170,7 +171,10 @@ function processSelection(actionType, mode) {
     });
 }
 
-function getOptions(actionType, mode) {
+function getOptions(actionType, mode, callback) {
+
+  var options;
+
   switch (mode) {
     case "mode_pass":
 
@@ -186,34 +190,53 @@ function getOptions(actionType, mode) {
         };
       }
 
+      callback(options);
+
       break;
     case "mode_pgp":
 
-      var pubk = "..."
-      var privk = "...";
-      // decryptKey(privateKey, passphrase) - dearmored key!
+      chrome.storage.local.get(["CurrentSubject", "CurrentPassphrase", "MyKeys"],
+        function(items) {
+          //TODO: if key for decryption of priv k is not def -> modal with input
+          var passphrase;
+          if (items.hasOwnProperty("CurrentPassphrase")) {
+            passphrase = items.CurrentPassphrase;
+          } else {
+            passphrase = showInputPassphrase();
+          }
 
-      if (actionType == "encrypt") {
-        options = {
-          publicKeys: openpgp.key.readArmored(pubk).keys,
-          privateKeys: openpgp.key.readArmored(privk).keys,
-          armor: true
-        };
-      } else if (actionType == "decrypt") {
-        options = {
-          privateKey: openpgp.key.readArmored(privk).keys,
-          publicKeys: openpgp.key.readArmored(pubk).keys,
-          format: 'utf8'
-        };
-      }
+          if (items.hasOwnProperty("CurrentSubject") && items.hasOwnProperty("MyKeys")) {
+
+            var pubk = openpgp.key.readArmored($("subject").data("pks")[items.CurrentSubject]).keys;
+            var privk = openpgp.decryptKey(openpgp.key.readArmored(items.MyKeys.private_key).keys, passphrase);
+
+            if (actionType == "encrypt") {
+              options = {
+                publicKeys: pubk,
+                privateKeys: privk,
+                armor: true
+              };
+            } else if (actionType == "decrypt") {
+              options = {
+                privateKey: privk,
+                publicKeys: pubk,
+                format: 'utf8'
+              };
+            }
+          }
+
+          callback(options);
+        });
+
+
+      callback(options);
 
       break;
     default:
-      // statements_def
+      callback(options);
       break;
   }
 
-  return options;
 }
 
 function makeChoice(event) {
@@ -265,4 +288,12 @@ function restoreSubject() {
       changeLookSelected();
     }
   });
+}
+
+function showInputPassphrase(){
+
+  var passphrase = "";
+  //show modal with input for passphrase to unlock privk
+
+  return passphrase;
 }

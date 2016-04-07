@@ -92,7 +92,6 @@ function initPGPEvents() {
   });
 
   $("#subject").keyup(function(event) {
-
     var ids = $(event.currentTarget).data("ids");
     var dropdown = $("#search_dropdown");
     var text = event.currentTarget.value;

@@ -74,10 +74,10 @@ function initEvents(mode) {
   }
 
   $('#encrypt').click(function() {
-    processSelection("encrypt", mode);
+    sendMessageToContent("encrypt");
   });
   $('#decrypt').click(function() {
-    processSelection("decrypt", mode);
+    sendMessageToContent("decrypt");
   });
 }
 
@@ -291,6 +291,7 @@ function changeLookSelected() {
     var data = {
       "CurrentSubject": null
     };
+    chrome.storage.local.remove("CurrentPassphrase");
 
     chrome.storage.local.set(data, function() {
       $("#subject").val("");
@@ -323,5 +324,23 @@ function getPassphrase(callback) {
   callback(prompt("Enter your passphrase:"));
 
   // }
+
+}
+
+
+function sendMessageToContent(actionType) {
+
+  chrome.tabs.query({
+      active: true,
+      windowId: chrome.windows.WINDOW_ID_CURRENT
+    },
+    function(tab) {
+      chrome.tabs.sendMessage(tab[0].id, {
+          action: actionType
+        },
+        function(response) {
+          $("#result").val(response.result);
+        });
+    });
 
 }

@@ -89,6 +89,7 @@ function initPGPEvents() {
       $("#subject").data("ids", ids);
       $("#subject").data("pks", items.PublicKeys);
     }
+
   });
 
   $("#subject").keyup(function(event) {

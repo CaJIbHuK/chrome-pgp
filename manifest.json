@@ -1,5 +1,5 @@
 {
-"manifest_version": 2,
+  "manifest_version": 2,
 
   "name": "My Extention",
   "description": "Something",
@@ -8,35 +8,31 @@
   "browser_action": {
     "default_icon": "images/icon.png",
     "default_popup": "popup.html",
-"default_title": "Click here!"
+    "default_title": "Click here!"
   },
 
   "permissions": [
-  "storage",
-  "tabs",
-    "activeTab"
-    ,"http://*/",
+    "storage",
+    "tabs",
+    "activeTab", "http://*/",
     "https://*/"
   ],
 
-  "background":{
-    "scripts":["js/background.js"],
-    "persistent":false
+  "background": {
+    "scripts": ["js/background.js"],
+    "persistent": false
   },
 
- "content_scripts": [
-   {
-     "matches": ["<all_urls>"],
-     "js": ["js/selection.js"],
-     "run_at": "document_idle"//document_start - не сработал
-     // "all_frames": true
-   }
- ],
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["js/selection.js"],
+    "run_at": "document_idle"
+  }],
 
- "sandbox":{
-  "pages":["options.html"]
-    },
+  "sandbox": {
+    "pages": ["options.html"]
+  },
 
-  "options_page":"options.html"
+  "options_page": "options.html"
 
 }

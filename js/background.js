@@ -32,14 +32,13 @@ chrome.runtime.onMessage.addListener(
 			}
 		} else if (request.action == "remove") {
 
-
-
 			chrome.storage.local.remove(request.data, function() {
 				sendResponse({
 					result: "removed"
 				});
 			});
 		}
+
 		return true;
 	});
 

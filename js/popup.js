@@ -2,7 +2,6 @@ $(function() {
   setEncType();
 });
 
-
 function EncDec(actionType, data, mode) {
 
   getOptions(actionType, mode, function(opts) {
@@ -13,17 +12,17 @@ function EncDec(actionType, data, mode) {
 
       openpgp.encrypt(opts).then(function(ciphertext) {
         result = ciphertext.data;
-        $('#result').val(result.replace("\nComment: http://openpgpjs.org", ""));
+        $('#result').val(result.replace(
+          "\nComment: http://openpgpjs.org", ""));
       });
 
     } else if (actionType == "decrypt") {
 
-      opts.message = openpgp.message.readArmored(data),
-
-        openpgp.decrypt(opts).then(function(plaintext) {
-          result = plaintext.data;
-          $('#result').val(result);
-        });
+      opts.message = openpgp.message.readArmored(data);
+      openpgp.decrypt(opts).then(function(plaintext) {
+        result = plaintext.data;
+        $('#result').val(result);
+      });
 
     }
   });
@@ -53,11 +52,11 @@ function setEncType() {
           break;
         default:
           break;
-      };
+      }
 
       initEvents(items.Mode);
     }
-  })
+  });
 }
 
 function initEvents(mode) {
@@ -128,8 +127,10 @@ function initPGPEvents() {
 
       dropdown.hide();
       dropdown.html("");
-      for (id in ids) {
-        dropdown.append("<li role='presentation'><a role='menuitem' tabindex='-1' class='search-option' href='#''>" + ids[id] + "</a></li>");
+      for (var id in ids) {
+        dropdown.append(
+          "<li role='presentation'><a role='menuitem' tabindex='-1' class='search-option' href='#''>" +
+          ids[id] + "</a></li>");
       }
 
       //choice event
@@ -157,14 +158,14 @@ function processSelection(actionType, mode) {
 
           var openpgp = window.openpgp; // use as CommonJS, AMD, ES6 module or via window.openpgp
 
-          if (openpgp.getWorker() == undefined)
+          if (openpgp.getWorker() === undefined)
             openpgp.initWorker({
               path: 'js/openpgp.worker.min.js'
             });
 
           var data = response.data;
           if (data.length > 0) {
-            EncDec(actionType, data, mode)
+            EncDec(actionType, data, mode);
           }
 
         });
@@ -191,47 +192,70 @@ function getOptions(actionType, mode, callback) {
       }
 
       callback(options);
-
       break;
     case "mode_pgp":
 
       chrome.storage.local.get(["CurrentSubject", "CurrentPassphrase", "MyKeys"],
         function(items) {
-          //TODO: if key for decryption of priv k is not def -> modal with input
-          var passphrase;
-          if (items.hasOwnProperty("CurrentPassphrase")) {
-            passphrase = items.CurrentPassphrase;
-          } else {
-            passphrase = showInputPassphrase();
-          }
 
-          if (items.hasOwnProperty("CurrentSubject") && items.hasOwnProperty("MyKeys")) {
+          getPassphrase(function(passphrase) {
 
-            var pubk = openpgp.key.readArmored($("subject").data("pks")[items.CurrentSubject]).keys;
-            var privk = openpgp.decryptKey(openpgp.key.readArmored(items.MyKeys.private_key).keys, passphrase);
-
-            if (actionType == "encrypt") {
-              options = {
-                publicKeys: pubk,
-                privateKeys: privk,
-                armor: true
-              };
-            } else if (actionType == "decrypt") {
-              options = {
-                privateKey: privk,
-                publicKeys: pubk,
-                format: 'utf8'
-              };
+            if (passphrase) {
+              chrome.storage.local.set({
+                "CurrentPassphrase": passphrase
+              });
+            } else if (passphrase === "") {
+              alert("No password entered!");
+              chrome.storage.local.remove("CurrentPassphrase");
+              return;
+            } else {
+              return;
             }
-          }
 
-          callback(options);
+            if (items.hasOwnProperty("CurrentSubject") && items.hasOwnProperty(
+                "MyKeys")) {
+
+              var pubk;
+              var privk;
+
+              try {
+                pubk = openpgp.key.readArmored($("#subject").data("pks")[
+                    items.CurrentSubject])
+                  .keys;
+                privk = openpgp.key.readArmored(items.MyKeys.private_key)
+                  .keys[
+                    0];
+
+                if (!privk.decrypt(passphrase)) {
+                  chrome.storage.local.remove("CurrentPassphrase");
+                  throw new Error("Invalid passphrase!");
+                }
+
+              } catch (e) {
+                console.log(e);
+                return;
+              }
+
+              if (actionType == "encrypt") {
+                options = {
+                  publicKeys: pubk,
+                  privateKeys: privk,
+                  armor: true
+                };
+              } else if (actionType == "decrypt") {
+                options = {
+                  privateKey: privk,
+                  publicKeys: pubk,
+                  format: 'utf8'
+                };
+              }
+            }
+
+            callback(options);
+          });
         });
-
-
-      callback(options);
-
       break;
+
     default:
       callback(options);
       break;
@@ -283,17 +307,21 @@ function initKeyEvents() {}
 
 function restoreSubject() {
   chrome.storage.local.get("CurrentSubject", function(items) {
-    if (items.hasOwnProperty("CurrentSubject") && items.CurrentSubject != null) {
+    if (items.hasOwnProperty("CurrentSubject") && items.CurrentSubject !==
+      null) {
       $("#subject").val(items.CurrentSubject);
       changeLookSelected();
     }
   });
 }
 
-function showInputPassphrase(){
+function getPassphrase(callback) {
 
-  var passphrase = "";
-  //show modal with input for passphrase to unlock privk
+  //if (items.hasOwnProperty("CurrentPassphrase")) {
+  //   callback(items.CurrentPassphrase);
+  //  } else {
+  callback(prompt("Enter your passphrase:"));
 
-  return passphrase;
+  // }
+
 }

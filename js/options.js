@@ -13,7 +13,7 @@ function changePill(id) {
 		id: id
 	}, function(response) {
 		changePillWithData(response.id, response.result);
-	})
+	});
 }
 
 function changePillWithData(id, dataFromStorage) {
@@ -85,9 +85,12 @@ function getContext(id, data) {
 
 function getContent(name, data = undefined) {
 
+	var text;
+
 	if (name == "enc_type") {
 
-		text = `
+		text =
+			`
 		<div id = "enc_type">
 		<div class="form-group">
 			<div class="radio enc-type">
@@ -98,9 +101,11 @@ function getContent(name, data = undefined) {
   			</div>
   		</div></div>`;
 
-		if (data != undefined && data.hasOwnProperty("Mode")) {
-			text = text.replace("%state_mode_pass%", (data.Mode == "mode_pass" ? "checked" : ""));
-			text = text.replace("%state_mode_pgp%", (data.Mode == "mode_pgp" ? "checked" : ""));
+		if (data !== undefined && data.hasOwnProperty("Mode")) {
+			text = text.replace("%state_mode_pass%", (data.Mode == "mode_pass" ?
+				"checked" : ""));
+			text = text.replace("%state_mode_pgp%", (data.Mode == "mode_pgp" ? "checked" :
+				""));
 		} else {
 			text = text.replace("%state_mode_pass%", "");
 			text = text.replace("%state_mode_pgp%", "");
@@ -113,18 +118,22 @@ function getContent(name, data = undefined) {
 		text = getPKTable();
 
 		var tableRows = "";
-		if (data != undefined && data.hasOwnProperty("PublicKeys")) {
+		if (data !== undefined && data.hasOwnProperty("PublicKeys")) {
 			var publicKeys = data.PublicKeys;
-			for (ids in publicKeys) {
-				var name = ids.substring(0, ids.indexOf(":"));
+			for (var ids in publicKeys) {
+				var id_name = ids.substring(0, ids.indexOf(":"));
 				var email = ids.substring(ids.indexOf(":") + 1);
 
-				tableRows += `
+				tableRows +=
+					`
 			      <tr id="tr_pk">
 			      	<td id="td_check" class="check-box hidden"></td>
-			        <td id="td_name">` + name + `</td>
-			        <td id="td_email">` + email + `</td>
-			        <td id="td_pk">` + publicKeys[ids] + `</td>
+			        <td id="td_name">` +
+					id_name + `</td>
+			        <td id="td_email">` + email +
+					`</td>
+			        <td id="td_pk">` + publicKeys[ids] +
+					`</td>
 			      </tr>	`;
 			}
 		}
@@ -132,8 +141,9 @@ function getContent(name, data = undefined) {
 		return text.replace("%rows%", tableRows);
 
 	} else if (name == "subject") {
-
-		return `<div id="subject">
+		text =
+			`
+		<div id="subject">
 			<div class="form-group">
 				<label for="subj_name" class="control-label col-md-2">Name:</label>
 				<div class="col-md-8">
@@ -154,33 +164,37 @@ function getContent(name, data = undefined) {
 		 	</div>
 		 </div>`;
 
+		return text;
+
 	} else if (name == "key_gen") {
-
-		return `
-		<div class="form-group">
-			<div class="col-md-5">
-				<label for="gen_priv_key" class="control-label">Private key:</label>
-				<textarea class="form-control gen-key-text" rows="5" id="gen_priv_key" readonly></textarea>
-			</div>
-			<div class="col-md-5">
-				<label for="gen_pub_key" class="control-label">Public key:</label>
-				<textarea class="form-control gen-key-text" rows="5" id="gen_pub_key" readonly></textarea>
-			</div>			
-		</div>
-		<div class="form-group btn-group col-md-5">
-
-				<input type="button" class="btn btn-primary" id="generate" value="Generate"></input>
-				<input type="reset" class="btn btn-primary" id="clear" value="Clear"></input>
-				<input type="button" class="btn btn-success" id="save" value="Save"></input>
-				<div id="preloader-container" class="hidden">
-					<img id="loader" src="images/loader.gif">
+		text =
+			`
+			<div class="form-group">
+				<div class="col-md-5">
+					<label for="gen_priv_key" class="control-label">Private key:</label>
+					<textarea class="form-control gen-key-text" rows="5" id="gen_priv_key" readonly></textarea>
 				</div>
-		</div>
-		`;
+				<div class="col-md-5">
+					<label for="gen_pub_key" class="control-label">Public key:</label>
+					<textarea class="form-control gen-key-text" rows="5" id="gen_pub_key" readonly></textarea>
+				</div>
+			</div>
+			<div class="form-group btn-group col-md-5">
+					<input type="button" class="btn btn-primary" id="generate" value="Generate"></input>
+					<input type="reset" class="btn btn-primary" id="clear" value="Clear"></input>
+					<input type="button" class="btn btn-success" id="save" value="Save"></input>
+					<div id="preloader-container" class="hidden">
+						<img id="loader" src="images/loader.gif">
+					</div>
+			</div>
+			`;
+		return text;
+
 
 	} else if (name == "my_keys") {
 
-		var text = `
+		text =
+			`
 		<div class="form-group">
 			<div class="col-md-5">
 				<label for="my_priv_key" class="control-label">Private key:</label>
@@ -189,14 +203,14 @@ function getContent(name, data = undefined) {
 			<div class="col-md-5">
 				<label for="my_pub_key" class="control-label">Public key:</label>
 				<textarea class="form-control gen-key-text" rows="5" id="my_pub_key" readonly>%pub_key%</textarea>
-			</div>			
+			</div>
 		</div>
 		<div class="form-group btn-group col-md-5">
 			<input type="reset" class="btn btn-primary" id="clear_my_keys" value="Clear"></input>
 			<input type="button" class="btn btn-success" id="save_my_keys" value="Save"></input>
 		</div>`;
 
-		if (data != undefined && data.hasOwnProperty("MyKeys")) {
+		if (data !== undefined && data.hasOwnProperty("MyKeys")) {
 			text = text.replace("%priv_key%", data.MyKeys.private_key);
 			text = text.replace("%pub_key%", data.MyKeys.public_key);
 		} else {
@@ -209,14 +223,15 @@ function getContent(name, data = undefined) {
 	} else if (name == "about") {
 
 		return `Anton Zaslavskii`;
-	};
+	}
 }
 
 function getPKTable() {
 
-	var table = `
+	var table =
+		`
 	<div class="form-group" id="pk_table">
-		<div class="container col-md-12">       
+		<div class="container col-md-12">
 	  		<table class="table table-hover" id="pk_table">
 	    		<thead>
 	      			<tr>
@@ -231,11 +246,11 @@ function getPKTable() {
 	  		</table>
 		</div>
 	</div>
-	<div class="form-group btn-group col-md-5 btn-group-pk">		
-  		<input type="button" class="btn btn-primary" id="clear" value="Clear"></input>		
+	<div class="form-group btn-group col-md-5 btn-group-pk">
+  		<input type="button" class="btn btn-primary" id="clear" value="Clear"></input>
   		<input type="button" class="btn btn-primary hidden" id="cancel" value="Cancel"></input>
   		<input type="button" class="btn btn-danger hidden" id="del" value="Delete"></input>
-		<input type="button" class="btn btn-primary" id="select" value="Select"></input>		
+		<input type="button" class="btn btn-primary" id="select" value="Select"></input>
 	</div>
 	`;
 
@@ -260,7 +275,7 @@ function initEvents(id) {
 				data: data
 			}, function(response) {
 				console.log(response);
-			})
+			});
 		});
 
 		//my keys events
@@ -306,7 +321,8 @@ function initEvents(id) {
 			$("#cancel").removeClass('hidden');
 
 			$("[id=td_check]").removeClass('hidden');
-			$("[id=td_check]").html("<span class='glyphicon glyphicon-ok grey'></span>");
+			$("[id=td_check]").html(
+				"<span class='glyphicon glyphicon-ok grey'></span>");
 			$("#th_check").removeClass('hidden');
 
 			$("[id=tr_pk]").addClass('warning');
@@ -314,11 +330,13 @@ function initEvents(id) {
 			$("[id=tr_pk]").click(function(event) {
 				if ($(event.currentTarget).hasClass('danger')) {
 					$(event.currentTarget).removeClass('danger');
-					$(event.currentTarget).children('#td_check').html("<span class='glyphicon glyphicon-ok grey'></span>");
+					$(event.currentTarget).children('#td_check').html(
+						"<span class='glyphicon glyphicon-ok grey'></span>");
 				} else {
 					$(event.currentTarget).addClass('danger');
 					$(event.currentTarget).children('#td_check').html("");
-					$(event.currentTarget).children('#td_check').html("<span class='glyphicon glyphicon-ok black'></span>");
+					$(event.currentTarget).children('#td_check').html(
+						"<span class='glyphicon glyphicon-ok black'></span>");
 				}
 			});
 
@@ -329,7 +347,8 @@ function initEvents(id) {
 
 			var keys = [];
 			$("[id=tr_pk][class*=danger]").each(function(index, el) {
-				keys.push($(el).children('#td_name').text() + ":" + $(el).children('#td_email').text());
+				keys.push($(el).children('#td_name').text() + ":" + $(el).children(
+					'#td_email').text());
 			});
 			removePK(keys);
 		});
@@ -362,7 +381,7 @@ function initEvents(id) {
 				} catch (e) {
 					console.log(e);
 				}
-			}
+			};
 
 			var files = event.dataTransfer.files;
 			var len = files.length;
@@ -394,7 +413,8 @@ function initEvents(id) {
 
 		$("#download_pk").unbind('click');
 		$("#download_pk").click(function(event) {
-			saveTextAsFile("edit_field", "public_key(" + $("#edit_name").text() + ").txt");
+			saveTextAsFile("edit_field", "public_key(" + $("#edit_name").text() +
+				").txt");
 		});
 
 		$("#delete_pk").unbind('click');
@@ -446,7 +466,7 @@ function initEvents(id) {
 
 		//check wether required fields are empty
 		$("[input],[type='text'],[type='password']").change(function(event) {
-			if (event.currentTarget.value == "") {
+			if (event.currentTarget.value === "") {
 				matchAsEmpty(event.currentTarget);
 			} else {
 				matchAsEmpty(event.currentTarget, true);
@@ -459,13 +479,13 @@ function initEvents(id) {
 function validateForm(event) {
 	result = true;
 	$("[input],[type='text'],[type='password']").each(function(index, el) {
-		if (el.value.length == 0) {
+		if (el.value.length === 0) {
 			result = false;
 			matchAsEmpty(el);
 		} else {
 			matchAsEmpty(el, true);
 		}
-	})
+	});
 
 	return result;
 }
@@ -489,7 +509,7 @@ function addNewPK(content) {
 		for (var i = 0; i < errors.length; i++) {
 			console.log(errors[i]);
 		}
-		alert("Something went wrong! Look for errors in log!")
+		alert("Something went wrong! Look for errors in log!");
 		return;
 	}
 
@@ -515,7 +535,7 @@ function addNewPK(content) {
 				console.log(response.result);
 				clearCurrentSubject();
 				changePill("keys_opt");
-			})
+			});
 		});
 	} else {
 		throw new Error("Is not a public key!");
@@ -543,7 +563,7 @@ function removePK(keys) {
 			console.log(response.result);
 			clearCurrentSubject();
 			changePill("keys_opt");
-		})
+		});
 	});
 }
 
@@ -553,7 +573,7 @@ function clearKeys(type, pill) {
 		data: "type"
 	}, function(response) {
 		var keys = response.result[type] || {};
-		for (key in keys) {
+		for (var key in keys) {
 			delete keys[key];
 		}
 		var data = {};
@@ -566,7 +586,7 @@ function clearKeys(type, pill) {
 			console.log(response.result);
 			clearCurrentSubject();
 			changePill(pill);
-		})
+		});
 	});
 }
 
@@ -582,7 +602,7 @@ function dropFiles(event, callback) {
 		} catch (e) {
 			console.log(e);
 		}
-	}
+	};
 
 	var files = event.dataTransfer.files;
 	var len = files.length;
@@ -612,8 +632,8 @@ function addMyKey(text, type) {
 			data: data
 		}, function(response) {
 			console.log(response.result);
-			changePill("main_opt")
-		})
+			changePill("main_opt");
+		});
 	});
 }
 
@@ -634,7 +654,7 @@ function clearCurrentSubject() {
 		}
 	}, function(response) {
 		console.log(response.result);
-	})
+	});
 
 }
 

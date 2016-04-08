@@ -3,6 +3,9 @@
 		margin-left: 10px;
 }
 
+.form-group.form-popup{
+	width: 250px;
+}
 .table {
   table-layout:fixed;
 }
@@ -27,7 +30,7 @@
 
 #save{
 	border-bottom-right-radius:5px;
-	border-top-right-radius:5px;	
+	border-top-right-radius:5px;
 }
 
 .grey{
@@ -56,14 +59,16 @@
 
 .dropdown-search-ul{
 	padding-left: 0;
+	width: 100%
 }
 
 .dropdown-menu>li>a {
 	    padding: 3px 10px;
-    width: 200px;
+    width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
 }
 
 .dropdown-search {
@@ -115,7 +120,7 @@
 	}
 
 	#key{
-		width: 200px;
+		width: 99%;
 	}
 
 	#result{
@@ -137,7 +142,7 @@
 	}
 
 	.options_header{
-		font-size: 25px;	
+		font-size: 25px;
 	}
 
 	.nav{

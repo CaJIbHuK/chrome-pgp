@@ -2,32 +2,6 @@ $(function() {
   setEncType();
 });
 
-function EncDec(actionType, data, mode) {
-
-  getOptions(actionType, mode, function(opts) {
-
-    if (actionType == "encrypt") {
-
-      opts.data = data;
-
-      openpgp.encrypt(opts).then(function(ciphertext) {
-        result = ciphertext.data;
-        $('#result').val(result.replace(
-          "\nComment: http://openpgpjs.org", ""));
-      });
-
-    } else if (actionType == "decrypt") {
-
-      opts.message = openpgp.message.readArmored(data);
-      openpgp.decrypt(opts).then(function(plaintext) {
-        result = plaintext.data;
-        $('#result').val(result);
-      });
-
-    }
-  });
-}
-
 function setEncType() {
 
   chrome.storage.local.get("Mode", function(items) {
@@ -73,12 +47,6 @@ function initEvents(mode) {
       break;
   }
 
-  $('#encrypt').click(function() {
-    sendMessageToContent("encrypt");
-  });
-  $('#decrypt').click(function() {
-    sendMessageToContent("decrypt");
-  });
 }
 
 function initPGPEvents() {
@@ -144,125 +112,6 @@ function initPGPEvents() {
   });
 }
 
-function processSelection(actionType, mode) {
-
-  chrome.tabs.query({
-      active: true,
-      windowId: chrome.windows.WINDOW_ID_CURRENT
-    },
-    function(tab) {
-      chrome.tabs.sendMessage(tab[0].id, {
-          method: "getSelection"
-        },
-        function(response) {
-
-          var openpgp = window.openpgp; // use as CommonJS, AMD, ES6 module or via window.openpgp
-
-          if (openpgp.getWorker() === undefined)
-            openpgp.initWorker({
-              path: 'js/openpgp.worker.min.js'
-            });
-
-          var data = response.data;
-          if (data.length > 0) {
-            EncDec(actionType, data, mode);
-          }
-
-        });
-    });
-}
-
-function getOptions(actionType, mode, callback) {
-
-  var options;
-
-  switch (mode) {
-    case "mode_pass":
-
-      var key = $("#key").val();
-
-      if (actionType == "encrypt") {
-        options = {
-          passwords: [key]
-        };
-      } else if (actionType == "decrypt") {
-        options = {
-          password: key
-        };
-      }
-
-      callback(options);
-      break;
-    case "mode_pgp":
-
-      chrome.storage.local.get(["CurrentSubject", "CurrentPassphrase", "MyKeys"],
-        function(items) {
-
-          getPassphrase(function(passphrase) {
-
-            if (passphrase) {
-              chrome.storage.local.set({
-                "CurrentPassphrase": passphrase
-              });
-            } else if (passphrase === "") {
-              alert("No password entered!");
-              chrome.storage.local.remove("CurrentPassphrase");
-              return;
-            } else {
-              return;
-            }
-
-            if (items.hasOwnProperty("CurrentSubject") && items.hasOwnProperty(
-                "MyKeys")) {
-
-              var pubk;
-              var privk;
-
-              try {
-                pubk = openpgp.key.readArmored($("#subject").data("pks")[
-                    items.CurrentSubject])
-                  .keys;
-                privk = openpgp.key.readArmored(items.MyKeys.private_key)
-                  .keys[
-                    0];
-
-                if (!privk.decrypt(passphrase)) {
-                  chrome.storage.local.remove("CurrentPassphrase");
-                  throw new Error("Invalid passphrase!");
-                }
-
-              } catch (e) {
-                console.log(e);
-                return;
-              }
-
-              if (actionType == "encrypt") {
-                options = {
-                  publicKeys: pubk,
-                  privateKeys: privk,
-                  armor: true
-                };
-              } else if (actionType == "decrypt") {
-                options = {
-                  privateKey: privk,
-                  publicKeys: pubk,
-                  format: 'utf8'
-                };
-              }
-            }
-
-            callback(options);
-          });
-        });
-      break;
-
-    default:
-      callback(options);
-      break;
-  }
-
-}
-
 function makeChoice(event) {
 
   $("#subject").val(event.currentTarget.text);
@@ -304,8 +153,6 @@ function changeLookSelected() {
 
 }
 
-function initKeyEvents() {}
-
 function restoreSubject() {
   chrome.storage.local.get("CurrentSubject", function(items) {
     if (items.hasOwnProperty("CurrentSubject") && items.CurrentSubject !==
@@ -314,33 +161,4 @@ function restoreSubject() {
       changeLookSelected();
     }
   });
-}
-
-function getPassphrase(callback) {
-
-  //if (items.hasOwnProperty("CurrentPassphrase")) {
-  //   callback(items.CurrentPassphrase);
-  //  } else {
-  callback(prompt("Enter your passphrase:"));
-
-  // }
-
-}
-
-
-function sendMessageToContent(actionType) {
-
-  chrome.tabs.query({
-      active: true,
-      windowId: chrome.windows.WINDOW_ID_CURRENT
-    },
-    function(tab) {
-      chrome.tabs.sendMessage(tab[0].id, {
-          action: actionType
-        },
-        function(response) {
-          $("#result").val(response.result);
-        });
-    });
-
 }

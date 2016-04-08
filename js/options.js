@@ -275,6 +275,7 @@ function initEvents(id) {
 				data: data
 			}, function(response) {
 				console.log(response);
+				removeCurrentPassphrase();
 			});
 		});
 
@@ -534,6 +535,7 @@ function addNewPK(content) {
 			}, function(response) {
 				console.log(response.result);
 				clearCurrentSubject();
+				removeCurrentPassphrase();
 				changePill("keys_opt");
 			});
 		});
@@ -562,6 +564,7 @@ function removePK(keys) {
 		}, function(response) {
 			console.log(response.result);
 			clearCurrentSubject();
+			removeCurrentPassphrase();
 			changePill("keys_opt");
 		});
 	});
@@ -585,6 +588,7 @@ function clearKeys(type, pill) {
 		}, function(response) {
 			console.log(response.result);
 			clearCurrentSubject();
+			removeCurrentPassphrase();
 			changePill(pill);
 		});
 	});
@@ -652,6 +656,17 @@ function clearCurrentSubject() {
 		data: {
 			"CurrentSubject": null
 		}
+	}, function(response) {
+		console.log(response.result);
+	});
+
+}
+
+function removeCurrentPassphrase() {
+
+	chrome.runtime.sendMessage(chrome.runtime.id, {
+		action: "remove",
+		data: "CurrentPassphrase"
 	}, function(response) {
 		console.log(response.result);
 	});

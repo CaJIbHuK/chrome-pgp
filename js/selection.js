@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener(
           result: result
         });
       });
-    };
+    }
   });
 
 
@@ -119,10 +119,11 @@ function getModalHtml() {
 <div id="passphrase_modal" class="modal">
   <!-- Modal content -->
   <div class="modal-content">
-  <h4 class="modal-title">Enter your passphrase to unlock private key</h4>
+  <h4 class="modal-title" id="passphrase_label">Enter passphrase:</h4>
+  <h5 class="modal-title" id="passphrase_label_help">(in PGP mode - key to unlock private key. Otherwise, shared key)</h5>
   <input type="password" class="form-control" id="passphrase"></input>
-  <div><button type="button" class="btn btn-default" id="passphrase_cancel" data-dismiss="modal">Cancel</button>
-  <button type="button" class="btn btn-success" id="passphrase_ok">OK</button></div>
+  <div><button type="button" class="btn-pgp btn-default" id="passphrase_cancel" data-dismiss="modal">Cancel</button>
+  <button type="button" class="btn-pgp btn-success" id="passphrase_ok">OK</button></div>
   <div id="selection_container"></div>
   </div></div>
 
@@ -130,9 +131,9 @@ function getModalHtml() {
 <div id="pgp_modal" class="modal modal-pgp">
 <!-- Modal content -->
 <div class="modal-content modal-content-pgp">
-<h2 id="result_label">Result:</h2>
+<h2 class="modal-title" id="result_label">Result:</h2>
 <textarea class="form-control" id="pgp_result"></textarea>
-<button type="button" class="btn btn-default" id="pgp_close" data-dismiss="modal">Close</button>
+<button type="button" class="btn-pgp btn-default" id="pgp_close" data-dismiss="modal">Close</button>
 </div></div>
   `;
 
@@ -146,6 +147,7 @@ function initModalEvents() {
     var action = data.action;
     delete data.action;
     data.passphrase = $("#passphrase").val();
+    $("#passphrase").val("");
     $("#passphrase_modal").data(undefined);
     $("#passphrase_modal").toggle(false);
 
@@ -161,6 +163,24 @@ function initModalEvents() {
     $("#passphrase_modal").data(undefined);
     $("#passphrase_modal").toggle(false);
   });
+
+  $("#passphrase_modal").bind("keyup", function(event) {
+    if (event.keyCode == 27)
+      $("#passphrase_cancel").click();
+    else if (event.keyCode == 13)
+      $("#passphrase_ok").click();
+  });
+
+
+  $("#pgp_close").click(function(e) {
+    $("#pgp_modal").toggle(false);
+    $("#pgp_result").val("");
+  });
+  $("#pgp_modal").bind("keyup", function(e) {
+    if (e.keyCode == 27)
+      $("#pgp_close").click();
+  });
+
 }
 
 
@@ -174,9 +194,5 @@ function replaceResult(result) {
 
   $("#pgp_modal").toggle(true);
   $("#pgp_result").val(result);
-  $("#pgp_close").click(function(e) {
-    $("#pgp_modal").toggle(false);
-    $("#pgp_result").val("");
-  });
   $("#selection_container").data(undefined);
 }

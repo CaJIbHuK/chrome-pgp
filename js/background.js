@@ -1,3 +1,12 @@
+// document.addEventListener('DOMContentLoaded', function(e){
+// 	document.setInterval(function(){},5*60000);
+// });
+var timer;
+// var timer = setTimeout(function() {
+// 	chrome.storage.local.remove("CurrentPassphrase")
+// }, 60000);
+
+
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		console.log(sender.tab ?
@@ -133,6 +142,13 @@ function getOptions(actionType, settings, callback) {
 						chrome.storage.local.set({
 							"CurrentPassphrase": settings.passphrase
 						});
+						if (timer)
+							clearTimeout(timer);
+						timer = setTimeout(function() {
+								chrome.storage.local.remove("CurrentPassphrase")
+							},
+							20000)
+
 
 						if (items.hasOwnProperty("MyKeys")) {
 							var pubk;

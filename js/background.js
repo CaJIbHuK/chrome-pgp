@@ -2,9 +2,12 @@
 // 	document.setInterval(function(){},5*60000);
 // });
 var timer;
-// var timer = setTimeout(function() {
-// 	chrome.storage.local.remove("CurrentPassphrase")
-// }, 60000);
+chrome.runtime.onStartup.addListener(function() {
+		chrome.storage.local.remove("CurrentPassphrase");
+	})
+	// var timer = setTimeout(function() {
+	// 	chrome.storage.local.remove("CurrentPassphrase")
+	// }, 60000);
 
 
 chrome.runtime.onMessage.addListener(
@@ -147,7 +150,7 @@ function getOptions(actionType, settings, callback) {
 						timer = setTimeout(function() {
 								chrome.storage.local.remove("CurrentPassphrase")
 							},
-							20000)
+							5 * 60000)
 
 
 						if (items.hasOwnProperty("MyKeys")) {

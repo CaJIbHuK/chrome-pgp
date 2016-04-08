@@ -127,7 +127,7 @@ function getContent(name, data = undefined) {
 				tableRows +=
 					`
 			      <tr id="tr_pk">
-			      	<td id="td_check" class="check-box hidden"></td>
+			      	<td id="td_check" class="check-box"></td>
 			        <td id="td_name">` +
 					id_name + `</td>
 			        <td id="td_email">` + email +
@@ -235,7 +235,7 @@ function getPKTable() {
 	  		<table class="table table-hover" id="pk_table">
 	    		<thead>
 	      			<tr>
-	      				<th id="th_check" class="hidden"></th>
+	      				<th id="th_check"></th>
 	        			<th>Name</th>
 			        	<th>Email</th>
 	        			<th>Public key</th>
@@ -247,10 +247,9 @@ function getPKTable() {
 		</div>
 	</div>
 	<div class="form-group btn-group col-md-5 btn-group-pk">
-  		<input type="button" class="btn btn-primary" id="clear" value="Clear"></input>
-  		<input type="button" class="btn btn-primary hidden" id="cancel" value="Cancel"></input>
+  		<input type="button" class="btn btn-primary clear_key_round" id="clear_keys" value="Clear"></input>
   		<input type="button" class="btn btn-danger hidden" id="del" value="Delete"></input>
-		<input type="button" class="btn btn-primary" id="select" value="Select"></input>
+			<input type="button" class="btn btn-success hidden" id="download" value="Download"></input>
 	</div>
 	`;
 
@@ -304,64 +303,64 @@ function initEvents(id) {
 		});
 
 		$("#save_my_keys").click(function(event) {
-			if ($("#my_priv_key").val() && $("#my_pub_key").val()) {
-				saveTextAsFile("my_priv_key", "my_private_key.txt");
-				saveTextAsFile("my_pub_key", "my_public_key.txt");
+			if ($("#my_priv_key").text() && $("#my_pub_key").text()) {
+				saveTextAsFile($("#my_priv_key").text(), "my_private_key.txt");
+				saveTextAsFile($("#my_pub_key").text(), "my_public_key.txt");
 			}
 		});
 
 	} else if (id == "keys_opt") {
 
-		//work with PK table
-		$("#select").click(function(event) {
-			$(".btn-group-pk").children('input').each(function(index, el) {
-				$(el).addClass('hidden');
-			});
-
-			$("#del").removeClass('hidden');
-			$("#cancel").removeClass('hidden');
-
-			$("[id=td_check]").removeClass('hidden');
-			$("[id=td_check]").html(
-				"<span class='glyphicon glyphicon-ok grey'></span>");
-			$("#th_check").removeClass('hidden');
-
-			$("[id=tr_pk]").addClass('warning');
-			$("[id=tr_pk]").unbind('click');
-			$("[id=tr_pk]").click(function(event) {
-				if ($(event.currentTarget).hasClass('danger')) {
-					$(event.currentTarget).removeClass('danger');
-					$(event.currentTarget).children('#td_check').html(
-						"<span class='glyphicon glyphicon-ok grey'></span>");
-				} else {
-					$(event.currentTarget).addClass('danger');
-					$(event.currentTarget).children('#td_check').html("");
-					$(event.currentTarget).children('#td_check').html(
-						"<span class='glyphicon glyphicon-ok black'></span>");
-				}
-			});
-
+		$("[id=tr_pk]").hover(function() {
+			if (!$(this).hasClass('danger'))
+				$(this).children('#td_check').html(
+					"<span class='glyphicon glyphicon-ok grey'></span>");
+		}, function() {
+			if (!$(this).hasClass('danger'))
+				$(this).children('#td_check').html(
+					"");
 		});
 
-		$("#del").click(function(event) {
-			exitEditMode();
+		$("[id=td_check]").click(function(event) {
+			var parent = $(this).parent("tr");
 
+			if (parent.hasClass('danger')) {
+				parent.removeClass('danger');
+				$(this).html("<span class='glyphicon glyphicon-ok grey'></span>");
+			} else {
+				parent.addClass('danger');
+				$(this).html("<span class='glyphicon glyphicon-ok black'></span>");
+			}
+
+			visibilityPKTableButtons();
+		});
+
+		//work with PK table
+		$("#del").click(function(event) {
+			$("[id=tr_pk][class*=danger]>[id=td_check]").html();
 			var keys = [];
 			$("[id=tr_pk][class*=danger]").each(function(index, el) {
 				keys.push($(el).children('#td_name').text() + ":" + $(el).children(
 					'#td_email').text());
+				$(el).removeClass('danger');
 			});
 			removePK(keys);
+			visibilityPKTableButtons();
 		});
 
-		$("#cancel").click(function(event) {
-			exitEditMode();
-			changePill("keys_opt");
-		});
-
-
-		$("#clear").click(function(event) {
+		$("#clear_keys").click(function(event) {
 			clearKeys("PublicKeys", "keys_opt");
+		});
+
+		$("#download").click(function(event) {
+			$("[id=tr_pk][class*=danger]").each(function(index, el) {
+				saveTextAsFile($(el).children("#td_pk").text(), "public_key(" + $(el).children(
+						"#td_name").text() +
+					").txt");
+				$(el).removeClass('danger');
+				$(el).children('#td_check').html('');
+			});
+			visibilityPKTableButtons();
 		});
 
 		//drag n drop files
@@ -397,9 +396,9 @@ function initEvents(id) {
 		}, false);
 
 		//modal with details about keys
-		$("[id=tr_pk]").click(function(event) {
-			var row = $(event.currentTarget);
-			var textPK = $(event.currentTarget).children('#td_pk').text();
+		$("[id=tr_pk]>[id!=td_check]").click(function(event) {
+			var row = $(event.currentTarget).parent("tr");
+			var textPK = row.children('#td_pk').text();
 			var modal = $("#edit_modal");
 			$("#edit_name").text(row.children('#td_name').text());
 			$("#edit_email").text(row.children('#td_email').text());
@@ -414,7 +413,7 @@ function initEvents(id) {
 
 		$("#download_pk").unbind('click');
 		$("#download_pk").click(function(event) {
-			saveTextAsFile("edit_field", "public_key(" + $("#edit_name").text() +
+			saveTextAsFile($("#edit_field").text(), "public_key(" + $("#edit_name").text() +
 				").txt");
 		});
 
@@ -460,8 +459,8 @@ function initEvents(id) {
 		//saving of keys (downloading)
 		$("#save").click(function(event) {
 			if ($("#gen_priv_key").val() && $("#gen_pub_key").val()) {
-				saveTextAsFile("gen_priv_key", "private_key.txt");
-				saveTextAsFile("gen_pub_key", "public_key.txt");
+				saveTextAsFile($("gen_priv_key").text(), "private_key.txt");
+				saveTextAsFile($("gen_pub_key").text(), "public_key.txt");
 			}
 		});
 
@@ -500,7 +499,6 @@ function matchAsEmpty(el, cancel = false) {
 		$(el).closest('.form-group').addClass('has-error');
 }
 
-//add or update pk value
 function addNewPK(content) {
 	var openpgp = window.openpgp;
 	var obj = openpgp.key.readArmored(content);
@@ -620,33 +618,50 @@ function dropFiles(event, callback) {
 	}
 }
 
-function addMyKey(text, type) {
-	chrome.runtime.sendMessage(chrome.runtime.id, {
-		action: "get",
-		data: "MyKeys"
-	}, function(response) {
-		var myKeys = response.result["MyKeys"] || {};
-		myKeys[type] = text;
-		var data = {
-			"MyKeys": myKeys
-		};
+function addMyKey(text, ispublic) {
+
+	var obj = openpgp.key.readArmored(text);
+
+	if (obj.hasOwnProperty("err") && obj.err.length > 0) {
+		var errors = obj.err;
+		for (var i = 0; i < errors.length; i++) {
+			console.log(errors[i]);
+		}
+		alert("Something went wrong! Look for errors in log!");
+		return;
+	}
+
+	if (obj.keys[0].isPublic() == ispublic) {
 
 		chrome.runtime.sendMessage(chrome.runtime.id, {
-			action: "set",
-			data: data
+			action: "get",
+			data: "MyKeys"
 		}, function(response) {
-			console.log(response.result);
-			changePill("main_opt");
+			var myKeys = response.result["MyKeys"] || {};
+			myKeys[ispublic ? "public_key" : "private_key"] = text;
+			var data = {
+				"MyKeys": myKeys
+			};
+
+			chrome.runtime.sendMessage(chrome.runtime.id, {
+				action: "set",
+				data: data
+			}, function(response) {
+				console.log(response.result);
+				changePill("main_opt");
+			});
 		});
-	});
+	} else {
+		alert("Inappropriate key!");
+	}
 }
 
 function addMyPubKey(text) {
-	addMyKey(text, "public_key");
+	addMyKey(text, true);
 }
 
 function addMyPrivKey(text) {
-	addMyKey(text, "private_key");
+	addMyKey(text, false);
 }
 
 function clearCurrentSubject() {
@@ -673,25 +688,15 @@ function removeCurrentPassphrase() {
 
 }
 
-function exitEditMode() {
 
-	$(".btn-group-pk").children('input').each(function(index, el) {
-		$(el).removeClass('hidden');
-	});
-
-	$("#del").addClass('hidden');
-	$("#cancel").addClass('hidden');
-
-	$("[id=tr_pk]").unbind('click');
-	$("[id=tr_pk]").click(function(event) {
-		var row = $(event.currentTarget);
-		var textPK = $(event.currentTarget).children('#td_pk').text();
-		var modal = $("#edit_modal");
-		$("#edit_name").text(row.children('#td_name').text());
-		$("#edit_email").text(row.children('#td_email').text());
-		$("#edit_field").text(textPK);
-
-		modal.modal();
-	});
-
+function visibilityPKTableButtons() {
+	if ($("[id=tr_pk][class*=danger]").length) {
+		$("#del").removeClass('hidden');
+		$("#download").removeClass('hidden');
+		$("#clear_keys").removeClass('clear_key_round');
+	} else {
+		$("#del").addClass('hidden');
+		$("#download").addClass('hidden');
+		$("#clear_keys").addClass('clear_key_round');
+	}
 }

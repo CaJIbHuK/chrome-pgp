@@ -1,22 +1,30 @@
 {
   "manifest_version": 2,
 
-  "name": "My Extention",
-  "description": "Something",
+  "name": "Easy OTG PGP",
+  "description": "Extension for easy encrypting messages using PGP",
   "version": "1.0",
 
   "browser_action": {
     "default_icon": "images/icon.png",
     "default_popup": "popup.html",
-    "default_title": "Click here!"
+    "default_title": "Easy OTG PGP"
   },
 
   "permissions": [
+    "management",
+    "contextMenus",
     "storage",
     "tabs",
     "activeTab", "http://*/",
     "https://*/"
   ],
+
+  "icons": {
+    "16": "images/icon_16.png",
+    "48": "images/icon_48.png",
+    "128": "images/icon_128.png"
+  },
 
   "background": {
     "scripts": ["js/openpgp.min.js",
@@ -26,6 +34,7 @@
   },
 
   "content_scripts": [{
+    "all_frames": true,
     "matches": ["<all_urls>"],
     "js": ["js/jquery-2.2.2.min.js",
       "js/selection.js"
@@ -39,5 +48,4 @@
   },
 
   "options_page": "options.html"
-
 }

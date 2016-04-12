@@ -1,17 +1,49 @@
-// document.addEventListener('DOMContentLoaded', function(e){
-// 	document.setInterval(function(){},5*60000);
-// });
 var timer;
 chrome.runtime.onStartup.addListener(function() {
-		chrome.storage.local.remove("CurrentPassphrase");
-	})
-	// var timer = setTimeout(function() {
-	// 	chrome.storage.local.remove("CurrentPassphrase")
-	// }, 60000);
+	chrome.storage.local.remove("CurrentPassphrase");
+})
 
+chrome.runtime.onSuspend.addListener(function(event) {
+	chrome.storage.local.remove("CurrentPassphrase");
+});
+
+
+createContextMenuItems();
+
+function createContextMenuItems() {
+	var properties = {
+		type: 'normal',
+		id: 'encrypt',
+		title: 'Encrypt selected (ctrl+right mouse)',
+		contexts: ["selection"]
+	};
+
+	chrome.contextMenus.create(properties);
+
+	var properties = {
+		type: 'normal',
+		id: 'decrypt',
+		title: 'Decrypt selected (ctrl+alt+right mouse)',
+		contexts: ["selection"]
+	};
+
+	chrome.contextMenus.create(properties);
+}
+
+chrome.contextMenus.onClicked.addListener(function(info, tab) {
+	chrome.tabs.sendMessage(tab.id, {
+		action: info.menuItemId
+	});
+})
 
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
+
+		if (!checkSenderID(sender.id))
+			sendResponse({
+				result: "Forbidden!"
+			});
+
 		console.log(sender.tab ?
 			"from a content script:" + sender.tab.url :
 			"from the extension");
@@ -57,6 +89,11 @@ chrome.runtime.onMessage.addListener(
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 
+		if (!checkSenderID(sender.id))
+			sendResponse({
+				result: "Forbidden!"
+			});
+
 		if (request.hasOwnProperty("action") && request.hasOwnProperty("data")) {
 
 			if (request.action !== "encrypt" && request.action !== "decrypt") {
@@ -72,34 +109,40 @@ chrome.runtime.onMessage.addListener(
 					});
 
 				getOptions(request.action, request.data, function(opts) {
+					try {
+						if (request.action == "encrypt") {
 
-					if (request.action == "encrypt") {
+							opts.data = request.data.selection;
 
-						opts.data = request.data.selection;
-
-						openpgp.encrypt(opts).then(function(ciphertext) {
-							result = ciphertext.data;
-							sendResponse({
-								result: result.replace(
-									"\nComment: http://openpgpjs.org", "")
+							openpgp.encrypt(opts).then(function(ciphertext) {
+								result = ciphertext.data;
+								sendResponse({
+									result: result.replace(
+										"\nComment: http://openpgpjs.org", "")
+								});
 							});
-						});
 
-					} else if (request.action == "decrypt") {
+						} else if (request.action == "decrypt") {
 
-						opts.message = openpgp.message.readArmored(request.data.selection);
+							opts.message = openpgp.message.readArmored(request.data.selection);
 
-						openpgp.decrypt(opts).then(function(plaintext) {
-							result = plaintext.data;
-							sendResponse({
-								result: result
+							openpgp.decrypt(opts).then(function(plaintext) {
+								result = plaintext.data;
+								sendResponse({
+									result: result
+								});
 							});
-						});
-
+						}
+					} catch (e) {
+						alert(
+							"Oops, Something has gone wrong! Probably your message is not properly formatted."
+						);
+						console.log(e);
 					}
+
 				});
 			} catch (e) {
-				alert("Oops, Something went wrong!");
+				alert("Oops, Something has gone wrong!");
 				console.log(e);
 			}
 
@@ -108,7 +151,6 @@ chrome.runtime.onMessage.addListener(
 		return true;
 	}
 );
-
 
 function getOptions(actionType, settings, callback) {
 
@@ -200,8 +242,6 @@ function getOptions(actionType, settings, callback) {
 	}
 }
 
-
-
 function getNeededProps(id) {
 	switch (id) {
 		case "main_opt":
@@ -215,4 +255,10 @@ function getNeededProps(id) {
 		default:
 			return [""];
 	}
+}
+
+function checkSenderID(id) {
+	//todo: list of permitted extenstion IDs fron chrome.storage.local
+	//fiiling the list using options.html
+	return id === chrome.runtime.id;
 }

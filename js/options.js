@@ -1,4 +1,8 @@
-$(document).ready(function() {
+$(window).ready(function() {
+
+	if (!chrome.runtime.id)
+		location.reload();
+
 	changePill("main_opt");
 
 	$("#menu").children('ul').children('li').click(function(event) {
@@ -508,7 +512,7 @@ function addNewPK(content) {
 		for (var i = 0; i < errors.length; i++) {
 			console.log(errors[i]);
 		}
-		alert("Something went wrong! Look for errors in log!");
+		alert("Something has gone wrong! Look for errors in log!");
 		return;
 	}
 
@@ -627,7 +631,7 @@ function addMyKey(text, ispublic) {
 		for (var i = 0; i < errors.length; i++) {
 			console.log(errors[i]);
 		}
-		alert("Something went wrong! Look for errors in log!");
+		alert("Something has gone wrong! Look for errors in log!");
 		return;
 	}
 

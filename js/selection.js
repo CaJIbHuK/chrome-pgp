@@ -1,14 +1,10 @@
 //данный код инжектируется в загруженную страницу (см параметры в манифесте content_scripts)
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    if (request.hasOwnProperty("action")) {
-      processAction(request.action, function(result) {
-        sendResponse({
-          result: result
-        });
-      });
-    }
-  });
+    if (request.hasOwnProperty("action"))
+      processAction(request.action);
+  }
+);
 
 
 
@@ -131,14 +127,16 @@ function getModalHtml() {
 <div id="pgp_modal" class="modal modal-pgp">
 <!-- Modal content -->
 <div class="modal-content modal-content-pgp">
+<span class="close" id="pgp_close">x</span>
 <h2 class="modal-title" id="result_label">Result:</h2>
 <textarea class="form-control" id="pgp_result"></textarea>
-<button type="button" class="btn-pgp btn-default" id="pgp_close" data-dismiss="modal">Close</button>
+<button type="button" class="btn-pgp btn-default" id="pgp_copy" data-dismiss="modal">Copy&Close</button>
 </div></div>
   `;
 
   return text;
 }
+// <button type="button" class="btn-pgp btn-default" id="pgp_close" data-dismiss="modal">Close</button>
 
 function initModalEvents() {
 
@@ -181,18 +179,22 @@ function initModalEvents() {
       $("#pgp_close").click();
   });
 
+  $("#pgp_copy").click(function(event) {
+    var result = document.getElementById('pgp_result');
+    result.select();
+    document.execCommand("copy");
+    $("#pgp_close").click();
+  });
+
 }
 
 
 function replaceResult(result) {
-  // var selection = $("#selection_container").data("selection");
-  // var range = selection.getRangeAt(0);
-  // range.deleteContents();
-  // var fragment = document.createElement("pre");
-  // fragment.innerHTML = result;
-  // range.insertNode(fragment);
-
+  //спросить
+  //if (!document.execCommand("insertHTML", false, "<pre>" + result + "</pre>")) {
+  //if (!document.execCommand("insertText", false, result)) {
   $("#pgp_modal").toggle(true);
   $("#pgp_result").val(result);
   $("#selection_container").data(undefined);
+  // }
 }

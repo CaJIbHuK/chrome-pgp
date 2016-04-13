@@ -12,6 +12,7 @@
   },
 
   "permissions": [
+    "alarms",
     "management",
     "clipboardWrite",
     "contextMenus",
@@ -30,8 +31,7 @@
   "background": {
     "scripts": ["js/openpgp.min.js",
       "js/openpgp.worker.min.js", "js/background.js"
-    ],
-    "persistent": false
+    ]
   },
 
   "content_scripts": [{

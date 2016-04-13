@@ -151,19 +151,19 @@ function getContent(name, data = undefined) {
 			<div class="form-group">
 				<label for="subj_name" class="control-label col-md-2">Name:</label>
 				<div class="col-md-8">
-		 			<input type="text" class="form-control" id="subj_name" placeholder="John Smith">
+		 			<input type="text" class="form-control" id="subj_name" data-toggle="tooltip" data-placement="right" title="empty" placeholder="John Smith">
 		 		</div>
 		 	</div>
 		 	<div class="form-group">
 				<label for="subj_email" class="control-label col-md-2">Email:</label>
 				<div class="col-md-8">
-		 			<input type="text" class="form-control" id="subj_email" placeholder="john@example.com">
+		 			<input type="text" class="form-control" id="subj_email" data-toggle="tooltip" data-placement="right" title="invalid" placeholder="john@example.com">
 			 	</div>
 		 	</div>
 		 	<div class="form-group">
 				<label for="subj_passphrase" class="control-label col-md-2">Passpharse:</label>
 				<div class="col-md-8">
-		 			<input type="password" class="form-control" id="subj_passphrase" placeholder="key">
+		 			<input type="password" class="form-control" id="subj_passphrase" data-toggle="tooltip" data-placement="right" title="empty" placeholder="key">
 			 	</div>
 		 	</div>
 		 </div>`;
@@ -209,6 +209,7 @@ function getContent(name, data = undefined) {
 				<textarea class="form-control gen-key-text" rows="5" id="my_pub_key" readonly>%pub_key%</textarea>
 			</div>
 		</div>
+		<h4><small>drag&drop files with keys into the corresponding textarea</small></h4>
 		<div class="form-group btn-group col-md-5">
 			<input type="reset" class="btn btn-primary" id="clear_my_keys" value="Clear"></input>
 			<input type="button" class="btn btn-success" id="save_my_keys" value="Save"></input>
@@ -234,12 +235,12 @@ function getPKTable() {
 
 	var table =
 		`
-	<div class="form-group" id="pk_table">
+	<div class="form-group" id="pk_table_div">
 		<div class="container col-md-12">
 	  		<table class="table table-hover" id="pk_table">
 	    		<thead>
 	      			<tr>
-	      				<th id="th_check"></th>
+	      				<th id="th_check"><span data-toggle="tooltip" id="check_all" title="check/uncheck all" class="glyphicon glyphicon-unchecked"></span></th>
 	        			<th>Name</th>
 			        	<th>Email</th>
 	        			<th>Public key</th>
@@ -248,6 +249,7 @@ function getPKTable() {
 	    		<tbody> %rows%
 	    		</tbody>
 	  		</table>
+				<h4><small>drag&drop files with PK into the table</small></h4>
 		</div>
 	</div>
 	<div class="form-group btn-group col-md-5 btn-group-pk">
@@ -315,6 +317,23 @@ function initEvents(id) {
 
 	} else if (id == "keys_opt") {
 
+		$('[data-toggle="tooltip"]').tooltip();
+
+		var checked = false;
+		$("#check_all").click(function(event) {
+			checked = !checked;
+			if (!checked) {
+				$("#check_all").removeClass('glyphicon-check');
+				$("#check_all").addClass('glyphicon-unchecked');
+				$("[id=tr_pk][class*=danger]").children("[id=td_check]").click();
+				$("[id=tr_pk][class!=danger]").children("[id=td_check]").html('');
+			} else {
+				$("[id=tr_pk][class!=danger]").children("[id=td_check]").click();
+				$("#check_all").removeClass('glyphicon-unchecked');
+				$("#check_all").addClass('glyphicon-check');
+			}
+		});
+
 		$("[id=tr_pk]").hover(function() {
 			if (!$(this).hasClass('danger'))
 				$(this).children('#td_check').html(
@@ -371,6 +390,7 @@ function initEvents(id) {
 		var pkTable = document.getElementById("pk_table");
 		pkTable.addEventListener("dragover", function(event) {
 			event.preventDefault(); // отменяем действие по умолчанию
+
 		}, false);
 
 		pkTable.addEventListener("drop", function(event) {
@@ -477,19 +497,44 @@ function initEvents(id) {
 			}
 		});
 
-	} else if (id == "about_opt") {}
+		$("#subj_name").keyup(function(event) {
+			for (var i = 0; i < $(this).val().length; i++) {
+				if ($(this).val()[i].charCodeAt() > 127 || $(this).val()[i] === ":") {
+					$(this).val($(this).val().slice(0, i));
+					break;
+				}
+			}
+		})
+
+
+	} else
+	if (id == "about_opt") {}
 }
 
 function validateForm(event) {
 	result = true;
 	$("[input],[type='text'],[type='password']").each(function(index, el) {
-		if (el.value.length === 0) {
-			result = false;
-			matchAsEmpty(el);
-		} else {
-			matchAsEmpty(el, true);
-		}
+		if (el.id !== "subj_email")
+			if (el.value.length === 0) {
+				result = false;
+				matchAsEmpty(el);
+				$(el).tooltip();
+			} else {
+				matchAsEmpty(el, true);
+				$(el).tooltip("destroy");
+			}
 	});
+
+	var re =
+		/^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net|org|pro|travel|mobi|[a-z][a-z])|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i;
+	if (String($("#subj_email").val()).search(re) == -1) {
+		result = false;
+		matchAsEmpty($("#subj_email"));
+		$("#subj_email").tooltip();
+	} else {
+		$("#subj_email").tooltip("destroy");
+		matchAsEmpty($("#subj_email"), true);
+	}
 
 	return result;
 }
@@ -687,7 +732,7 @@ function removeCurrentPassphrase() {
 		action: "remove",
 		data: "CurrentPassphrase"
 	}, function(response) {
-		console.log(response.result);
+		console.log("CurrentPassphrase " + response.result);
 	});
 
 }

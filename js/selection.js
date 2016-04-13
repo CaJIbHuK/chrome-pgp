@@ -1,4 +1,6 @@
 //данный код инжектируется в загруженную страницу (см параметры в манифесте content_scripts)
+
+
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if (request.hasOwnProperty("action"))
@@ -22,7 +24,8 @@ $(document).ready(function() {
 
   $("body").append(getModalHtml());
   $("#passphrase_modal").toggle(false);
-  $("#pgp_modal").toggle(false);
+  $(
+    "#pgp_modal").toggle(false);
   initModalEvents();
 });
 
@@ -112,14 +115,14 @@ function prepareData(settings, actionType) {
 function getModalHtml() {
   var text =
     `<!-- The Modal -->
-<div id="passphrase_modal" class="modal">
+<div id="passphrase_modal" class="modal-pgp">
   <!-- Modal content -->
-  <div class="modal-content">
-  <h4 class="modal-title" id="passphrase_label">Enter passphrase:</h4>
-  <h5 class="modal-title" id="passphrase_label_help">(in PGP mode - key to unlock private key. Otherwise, shared key)</h5>
-  <input type="password" class="form-control" id="passphrase"></input>
-  <div><button type="button" class="btn-pgp btn-default" id="passphrase_cancel" data-dismiss="modal">Cancel</button>
-  <button type="button" class="btn-pgp btn-success" id="passphrase_ok">OK</button></div>
+  <div class="modal-content-pgp">
+  <h4 class="modal-title-pgp" id="passphrase_label">Enter passphrase:</h4>
+  <h5 class="modal-title-pgp" id="passphrase_label_help">(in PGP mode - key to unlock private key. Otherwise, shared key)</h5>
+  <input type="password" class="form-control-pgp" id="passphrase"></input>
+  <div><button type="button" class="btn-pgp btn-default-pgp" id="passphrase_cancel" data-dismiss="modal">Cancel</button>
+  <button type="button" class="btn-pgp btn-success-pgp" id="passphrase_ok">OK</button></div>
   <div id="selection_container"></div>
   </div></div>
 
@@ -127,10 +130,10 @@ function getModalHtml() {
 <div id="pgp_modal" class="modal modal-pgp">
 <!-- Modal content -->
 <div class="modal-content modal-content-pgp">
-<span class="close" id="pgp_close">x</span>
-<h2 class="modal-title" id="result_label">Result:</h2>
-<textarea class="form-control" id="pgp_result"></textarea>
-<button type="button" class="btn-pgp btn-default" id="pgp_copy" data-dismiss="modal">Copy&Close</button>
+<span class="close-pgp" id="pgp_close">x</span>
+<h2 class="modal-title-pgp" id="result_label">Result:</h2>
+<textarea class="form-control-pgp" id="pgp_result"></textarea>
+<button type="button" class="btn-pgp btn-default-pgp" id="pgp_copy" data-dismiss="modal">Copy&Close</button>
 </div></div>
   `;
 

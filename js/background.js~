@@ -1,27 +1,11 @@
 var timer;
-
 chrome.runtime.onStartup.addListener(function() {
 	chrome.storage.local.remove("CurrentPassphrase");
 })
 
-chrome.runtime.onInstalled.addListener(function(details) {
-	chrome.storage.local.set({
-		Mode: "mode_pgp"
-	});
-})
-
-chrome.runtime.onSuspend.addListener(function() {
+chrome.runtime.onSuspend.addListener(function(event) {
 	chrome.storage.local.remove("CurrentPassphrase");
-})
-
-chrome.storage.onChanged.addListener(function(changes, area) {
-	if (!changes.hasOwnProperty("CurrentPassphrase") && !changes.hasOwnProperty(
-			"MyKeys")) {
-		console.log(changes);
-	} else {
-		console.log("Modified:" + Object.keys(changes));
-	}
-})
+});
 
 
 createContextMenuItems();
@@ -66,7 +50,9 @@ chrome.runtime.onMessage.addListener(
 
 		if (request.action == "set") {
 
-			chrome.storage.local.set(request.data);
+			chrome.storage.local.set(request.data, function() {
+				console.log("Saved:" + data.toString());
+			});
 
 			sendResponse({
 				result: "saved"
@@ -113,6 +99,7 @@ chrome.runtime.onMessage.addListener(
 			if (request.action !== "encrypt" && request.action !== "decrypt") {
 				return;
 			}
+
 			try {
 				var openpgp = window.openpgp; // use as CommonJS, AMD, ES6 module or via window.openpgp
 
@@ -147,7 +134,9 @@ chrome.runtime.onMessage.addListener(
 							});
 						}
 					} catch (e) {
-						throw e;
+						alert(
+							"Oops, Something has gone wrong! Probably your message is not properly formatted."
+						);
 						console.log(e);
 					}
 

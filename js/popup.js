@@ -40,10 +40,8 @@ function initEvents(mode) {
       initPGPEvents();
       break;
     case "mode_pass":
-      initKeyEvents();
       break;
     default:
-      // statements_def
       break;
   }
 

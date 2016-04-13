@@ -1,5 +1,5 @@
 /* The Modal (background) */
-.modal {
+.modal-pgp {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
     z-index: 99999; /* Sit on top */
@@ -14,7 +14,7 @@
 }
 
 /* Modal Content/Box */
-.modal-content{
+.modal-content-pgp{
     background-color: #fefefe;
     margin: 15% auto; /* 15% from the top and centered */
     border: 1px solid #888;
@@ -26,16 +26,17 @@
     padding-right: 30px;
 padding-left: 26px;
 padding-bottom: 20px;
+text-align: left;
 }
 
-.modal-content textarea{
+.modal-content-pgp textarea{
   width: 100%;
   resize: vertical;
   height: 200px;
   margin-bottom: 10px;
 }
 
-.modal button{
+.modal-pgp button{
 
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
@@ -43,7 +44,7 @@ padding-bottom: 20px;
   border-top-right-radius: 5px;
 
 }
-.btn-default{
+.btn-default-pgp{
   width: 80px;
     height: 30px;
         font-size: 12px;
@@ -71,11 +72,11 @@ color: black;
       margin-bottom: 5px;
 }
 
-.modal-title{
+.modal-title-pgp{
   font-size:16px;
 }
 
-.modal-content textarea{
+.modal-content-pgp textarea{
   font-size: 12px;
 }
 
@@ -101,7 +102,7 @@ font-size: smaller;
 
 }
 
-.btn-success{
+.btn-success-pgp{
   width: 80px;
       height: 30px;
       font: helvetica;
@@ -125,15 +126,15 @@ width: 100%;
 }
 
 /* The Close Button */
-.close {
+.close-pgp {
     color: #aaa;
     float: right;
     font-size: 28px;
     font-weight: bold;
 }
 
-.close:hover,
-.close:focus {
+.close-pgp:hover,
+.close-pgp:focus {
     color: black;
     text-decoration: none;
     cursor: pointer;

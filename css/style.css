@@ -16,6 +16,24 @@
   table-layout:fixed;
 }
 
+.container-drag{
+	border: black;
+border-width: 5px;
+padding: 0;
+margin-top: 3%;
+height: 90%;
+width: 60%;
+border-color: white;
+border-style: dashed;
+margin-bottom: 5%;
+color: white;
+font-size: xx-large;
+font-family: inherit;
+text-align: -webkit-center;
+line-height: 18em;
+margin-left: 25%;
+}
+
 .check-box{
 	width: 5%;
 }

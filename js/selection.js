@@ -3,6 +3,9 @@
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
+    if (window.location.href !== request.pageUrl)
+      return;
+
     if (request.hasOwnProperty("action"))
       processAction(request.action);
   }

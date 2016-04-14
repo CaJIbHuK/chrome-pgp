@@ -47,9 +47,11 @@ function createContextMenuItems() {
 }
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
-	chrome.tabs.sendMessage(tab.id, {
-		action: info.menuItemId
-	});
+	if (info.selectionText !== "")
+		chrome.tabs.sendMessage(tab.id, {
+			action: info.menuItemId,
+			pageUrl: info.pageUrl
+		});
 })
 
 chrome.runtime.onMessage.addListener(

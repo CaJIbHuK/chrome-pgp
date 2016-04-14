@@ -297,11 +297,11 @@ function initEvents(id) {
 		}, false);
 
 		myPrivKeyText.addEventListener("drop", function(event) {
-			dropFiles(event, addMyPrivKey);
+			dropFile(event, addMyPrivKey);
 		}, false);
 
 		myPubKeyText.addEventListener("drop", function(event) {
-			dropFiles(event, addMyPubKey);
+			dropFile(event, addMyPubKey);
 		}, false);
 
 		$("#clear_my_keys").click(function(event) {
@@ -386,39 +386,6 @@ function initEvents(id) {
 			visibilityPKTableButtons();
 		});
 
-		//drag n drop files
-		var pkTable = document.getElementById("pk_table");
-		pkTable.addEventListener("dragover", function(event) {
-			event.preventDefault(); // отменяем действие по умолчанию
-
-		}, false);
-
-		pkTable.addEventListener("drop", function(event) {
-
-			event.preventDefault();
-
-			var reader = new FileReader();
-			reader.onload = function(event) {
-				var content = event.target.result;
-				try {
-					addNewPK(content);
-				} catch (e) {
-					console.log(e);
-				}
-			};
-
-			var files = event.dataTransfer.files;
-			var len = files.length;
-			for (var i = 0; i < len; i++) {
-
-				reader.readAsText(files[i]);
-
-				console.log("Filename: " + files[i].name);
-				console.log("Type: " + files[i].type);
-				console.log("Size: " + files[i].size + " bytes");
-			}
-		}, false);
-
 		//modal with details about keys
 		$("[id=tr_pk]>[id!=td_check]").click(function(event) {
 			var row = $(event.currentTarget).parent("tr");
@@ -445,6 +412,35 @@ function initEvents(id) {
 		$("#delete_pk").click(function(event) {
 			removePK([$("#edit_name").text() + ":" + $("#edit_email").text()]);
 			$("#edit_modal").modal('hide');
+		});
+
+		$(".settings-container").bind("dragenter", function(e) {
+
+			$("#modal_drag").modal();
+
+			$("#dropzone").bind("dragleave", function(e) {
+				$("#modal_drag").modal("hide");
+				$("#dropzone").unbind("dragleave");
+				$("#dropzone").unbind("dragover");
+				$("#dropzone").unbind("drop");
+			});
+
+			document.getElementById("dropzone").addEventListener("dragover", function(
+				event) {
+				event.preventDefault();
+			}, false);
+
+			document.getElementById("dropzone").addEventListener("drop", function(
+				event) {
+				event.preventDefault();
+
+				dropFile(event, addNewPK);
+
+				$("#modal_drag").modal("hide");
+				$("#dropzone").unbind("dragleave");
+				$("#dropzone").unbind("dragover");
+				$("#dropzone").unbind("drop");
+			}, false);
 		});
 
 	} else if (id == "gen_opt") {
@@ -483,8 +479,8 @@ function initEvents(id) {
 		//saving of keys (downloading)
 		$("#save").click(function(event) {
 			if ($("#gen_priv_key").val() && $("#gen_pub_key").val()) {
-				saveTextAsFile($("gen_priv_key").text(), "private_key.txt");
-				saveTextAsFile($("gen_pub_key").text(), "public_key.txt");
+				saveTextAsFile($("#gen_priv_key").val(), "private_key.txt");
+				saveTextAsFile($("#gen_pub_key").val(), "public_key.txt");
 			}
 		});
 
@@ -641,7 +637,7 @@ function clearKeys(type, pill) {
 	});
 }
 
-function dropFiles(event, callback) {
+function dropFile(event, callback) {
 
 	event.preventDefault();
 
@@ -657,13 +653,12 @@ function dropFiles(event, callback) {
 
 	var files = event.dataTransfer.files;
 	var len = files.length;
-	for (var i = 0; i < len; i++) {
+	if (len) {
+		reader.readAsText(files[0]);
 
-		reader.readAsText(files[i]);
-
-		console.log("Filename: " + files[i].name);
-		console.log("Type: " + files[i].type);
-		console.log("Size: " + files[i].size + " bytes");
+		console.log("Filename: " + files[0].name);
+		console.log("Type: " + files[0].type);
+		console.log("Size: " + files[0].size + " bytes");
 	}
 }
 

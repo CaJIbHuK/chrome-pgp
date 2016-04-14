@@ -2,8 +2,9 @@ var timer;
 
 chrome.runtime.onStartup.addListener(function() {
 	chrome.storage.local.remove("CurrentPassphrase");
-	createContextMenuItems();
 })
+
+createContextMenuItems();
 
 chrome.runtime.onInstalled.addListener(function(details) {
 	chrome.storage.local.set({

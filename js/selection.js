@@ -24,8 +24,7 @@ $(document).ready(function() {
 
   $("body").append(getModalHtml());
   $("#passphrase_modal").toggle(false);
-  $(
-    "#pgp_modal").toggle(false);
+  $("#pgp_modal").toggle(false);
   initModalEvents();
 });
 
@@ -45,6 +44,13 @@ function prepareData(settings, actionType) {
 
     var selection = window.getSelection();
     var selected = selection.toString();
+
+    if (selected === "") {
+      alert(
+        "Nothing is selected! Probably, you can't use pgp in this text area."
+      );
+      return;
+    }
 
     $("#selection_container").data({
       selection: selection
@@ -139,7 +145,6 @@ function getModalHtml() {
 
   return text;
 }
-// <button type="button" class="btn-pgp btn-default" id="pgp_close" data-dismiss="modal">Close</button>
 
 function initModalEvents() {
 
@@ -161,6 +166,7 @@ function initModalEvents() {
   });
 
   $("#passphrase_cancel").click(function(e) {
+    $("#passphrase").val("");
     $("#passphrase_modal").data(undefined);
     $("#passphrase_modal").toggle(false);
   });
@@ -193,11 +199,12 @@ function initModalEvents() {
 
 
 function replaceResult(result) {
-  //спросить
-  //if (!document.execCommand("insertHTML", false, "<pre>" + result + "</pre>")) {
-  //if (!document.execCommand("insertText", false, result)) {
-  $("#pgp_modal").toggle(true);
-  $("#pgp_result").val(result);
+
+  if (!document.execCommand("insertText", false, result)) {
+    $("#pgp_modal").toggle(true);
+    $("#pgp_result").val(result);
+  }
+
   $("#selection_container").data(undefined);
-  // }
+
 }

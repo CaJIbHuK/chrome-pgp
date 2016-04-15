@@ -2,7 +2,7 @@ var timer;
 
 chrome.runtime.onStartup.addListener(function() {
 	chrome.storage.local.remove("CurrentPassphrase");
-})
+});
 
 createContextMenuItems();
 
@@ -10,11 +10,11 @@ chrome.runtime.onInstalled.addListener(function(details) {
 	chrome.storage.local.set({
 		Mode: "mode_pgp"
 	});
-})
+});
 
 chrome.runtime.onSuspend.addListener(function() {
 	chrome.storage.local.remove("CurrentPassphrase");
-})
+});
 
 chrome.storage.onChanged.addListener(function(changes, area) {
 	if (!changes.hasOwnProperty("CurrentPassphrase") && !changes.hasOwnProperty(
@@ -23,7 +23,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
 	} else {
 		console.log("Modified:" + Object.keys(changes));
 	}
-})
+});
 
 
 function createContextMenuItems() {
@@ -36,7 +36,7 @@ function createContextMenuItems() {
 
 	chrome.contextMenus.create(properties);
 
-	var properties = {
+	properties = {
 		type: 'normal',
 		id: 'decrypt',
 		title: 'Decrypt selected (ctrl+alt+right mouse)',
@@ -52,15 +52,18 @@ chrome.contextMenus.onClicked.addListener(function(info, tab) {
 			action: info.menuItemId,
 			pageUrl: info.pageUrl
 		});
-})
+});
 
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 
-		if (!checkSenderID(sender.id))
+		if (!checkSenderID(sender.id)) {
+			alert("This app or extension can't send communicate with 'Easy OTG PGP!'");
 			sendResponse({
-				result: "Forbidden!"
+				result: undefined
 			});
+			throw new Error("Forbidden");
+		}
 
 		console.log(sender.tab ?
 			"from a content script:" + sender.tab.url :
@@ -105,10 +108,14 @@ chrome.runtime.onMessage.addListener(
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 
-		if (!checkSenderID(sender.id))
+		if (!checkSenderID(sender.id)) {
+			alert("This app or extension can't send communicate with 'Easy OTG PGP!'");
 			sendResponse({
-				result: "Forbidden!"
+				result: undefined
 			});
+			throw new Error("Forbidden");
+		}
+
 
 		if (request.hasOwnProperty("action") && request.hasOwnProperty("data")) {
 
@@ -124,39 +131,44 @@ chrome.runtime.onMessage.addListener(
 					});
 
 				getOptions(request.action, request.data, function(opts) {
-					try {
-						if (request.action == "encrypt") {
+					if (request.action == "encrypt") {
 
-							opts.data = request.data.selection;
-
+						opts.data = request.data.selection;
+						try {
 							openpgp.encrypt(opts).then(function(ciphertext) {
 								result = ciphertext.data;
 								sendResponse({
-									result: result.replace(
-										"\nComment: http://openpgpjs.org", "")
+									result: formatEncResult(result)
 								});
 							});
+						} catch (e) {
+							console.log(e);
+							throw new Error("Encryption failed!");
+						}
 
-						} else if (request.action == "decrypt") {
-
+					} else if (request.action == "decrypt") {
+						try {
 							opts.message = openpgp.message.readArmored(request.data.selection);
+						} catch (e) {
+							throw new Error("Inappropriate format of PGP message!");
+						}
 
+						try {
 							openpgp.decrypt(opts).then(function(plaintext) {
 								result = plaintext.data;
 								sendResponse({
 									result: result
 								});
 							});
+						} catch (e) {
+							console.log(e);
+							throw new Error("Decryption failed!");
 						}
-					} catch (e) {
-						throw e;
-						console.log(e);
 					}
 
 				});
 			} catch (e) {
-				alert("Oops, Something has gone wrong!");
-				console.log(e);
+				alert(e);
 			}
 
 		}
@@ -183,36 +195,39 @@ function getOptions(actionType, settings, callback) {
 					password: key,
 				};
 			}
-
-			callback(options);
+			try {
+				callback(options);
+			} catch (e) {
+				throw e;
+			}
 			break;
 		case "mode_pgp":
 
 			chrome.storage.local.get(["MyKeys"],
 				function(items) {
-					if (settings.passphrase === "") {
-						alert("No password entered!");
-						chrome.storage.local.remove("CurrentPassphrase");
-						return;
-					}
+					try {
+						if (settings.passphrase === "") {
+							alert("No password entered!");
+							chrome.storage.local.remove("CurrentPassphrase");
+							return;
+						}
 
-					if (settings.passphrase) {
-						chrome.storage.local.set({
-							"CurrentPassphrase": settings.passphrase
-						});
-						if (timer)
-							clearTimeout(timer);
-						timer = setTimeout(function() {
-								chrome.storage.local.remove("CurrentPassphrase")
-							},
-							5 * 60000)
+						if (settings.passphrase) {
+							chrome.storage.local.set({
+								"CurrentPassphrase": settings.passphrase
+							});
+							if (timer)
+								clearTimeout(timer);
+							timer = setTimeout(function() {
+									chrome.storage.local.remove("CurrentPassphrase")
+								},
+								5 * 60000)
 
 
-						if (items.hasOwnProperty("MyKeys")) {
-							var pubk;
-							var privk;
+							if (items.hasOwnProperty("MyKeys")) {
+								var pubk;
+								var privk;
 
-							try {
 								pubk = openpgp.key.readArmored(settings.pk)
 									.keys;
 								privk = openpgp.key.readArmored(items.MyKeys.private_key)
@@ -224,28 +239,28 @@ function getOptions(actionType, settings, callback) {
 									throw new Error("Invalid passphrase!");
 								}
 
-							} catch (e) {
-								console.log(e);
-								return;
+								if (actionType == "encrypt") {
+									options = {
+										publicKeys: pubk,
+										privateKeys: privk,
+										armor: true
+									};
+								} else if (actionType == "decrypt") {
+									options = {
+										privateKey: privk,
+										publicKeys: pubk,
+										format: 'utf8'
+									};
+								}
 							}
-
-							if (actionType == "encrypt") {
-								options = {
-									publicKeys: pubk,
-									privateKeys: privk,
-									armor: true
-								};
-							} else if (actionType == "decrypt") {
-								options = {
-									privateKey: privk,
-									publicKeys: pubk,
-									format: 'utf8'
-								};
+							try {
+								callback(options);
+							} catch (e) {
+								throw e;
 							}
 						}
-
-						callback(options);
-
+					} catch (e) {
+						alert(e);
 					}
 				});
 			break;
@@ -274,4 +289,10 @@ function checkSenderID(id) {
 	//todo: list of permitted extenstion IDs fron chrome.storage.local
 	//fiiling the list using options.html
 	return id === chrome.runtime.id;
+}
+
+function formatEncResult(text) {
+	return text.replace(
+		"\nComment: http://openpgpjs.org", "").replace(
+		"\nVersion: OpenPGP.js v2.1.0", "");
 }

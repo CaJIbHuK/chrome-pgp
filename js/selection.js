@@ -47,6 +47,8 @@ function prepareData(settings, actionType) {
 
     var selection = window.getSelection();
     var selected = selection.toString();
+    if (actionType === "decrypt")
+      selected = formatSelected(selected);
 
     if (selected === "") {
       alert(
@@ -55,9 +57,9 @@ function prepareData(settings, actionType) {
       return;
     }
 
-    $("#selection_container").data({
-      selection: selection
-    });
+    // $("#selection_container").data({
+    //   selection: selection
+    // });
 
     switch (settings.Mode) {
       case "mode_pass":
@@ -210,4 +212,9 @@ function replaceResult(result) {
 
   $("#selection_container").data(undefined);
 
+}
+
+function formatSelected(text) {
+  return text.replace("-----BEGIN PGP MESSAGE-----",
+    "-----BEGIN PGP MESSAGE-----\n");
 }

@@ -368,6 +368,8 @@ function initEvents(id) {
 				$(el).removeClass('danger');
 			});
 			removePK(keys);
+			$("#check_all").removeClass('glyphicon-check');
+			$("#check_all").addClass('glyphicon-unchecked');
 			visibilityPKTableButtons();
 		});
 
@@ -384,6 +386,8 @@ function initEvents(id) {
 				$(el).children('#td_check').html('');
 			});
 			visibilityPKTableButtons();
+			$("#check_all").removeClass('glyphicon-check');
+			$("#check_all").addClass('glyphicon-unchecked');
 		});
 
 		//modal with details about keys
@@ -414,33 +418,43 @@ function initEvents(id) {
 			$("#edit_modal").modal('hide');
 		});
 
-		$(".settings-container").bind("dragenter", function(e) {
+
+		$(".settings-container").bind("dragenter", function(event) {
+			event.preventDefault();
+			event.stopPropagation();
 
 			$("#modal_drag").modal();
 
-			$("#dropzone").bind("dragleave", function(e) {
+			$("#dropzone").bind("dragleave", function(event) {
 				$("#modal_drag").modal("hide");
 				$("#dropzone").unbind("dragleave");
 				$("#dropzone").unbind("dragover");
 				$("#dropzone").unbind("drop");
+				$("#dropzone").unbind("dragenter");
 			});
 
-			document.getElementById("dropzone").addEventListener("dragover", function(
-				event) {
+			$("#dropzone").bind("dragover", function(event) {
 				event.preventDefault();
-			}, false);
+				event.stopPropagation();
+			});
 
-			document.getElementById("dropzone").addEventListener("drop", function(
-				event) {
+			$("#dropzone").bind("dragenter", function(event) {
 				event.preventDefault();
+				event.stopPropagation();
+			});
 
-				dropFile(event, addNewPK);
+			$("#dropzone").bind("drop", function(event) {
+				event.preventDefault();
+				event.stopPropagation();
+
+				dropPKFiles(event.originalEvent);
 
 				$("#modal_drag").modal("hide");
 				$("#dropzone").unbind("dragleave");
 				$("#dropzone").unbind("dragover");
 				$("#dropzone").unbind("drop");
-			}, false);
+				$("#dropzone").unbind("dragenter");
+			});
 		});
 
 	} else if (id == "gen_opt") {
@@ -500,7 +514,7 @@ function initEvents(id) {
 					break;
 				}
 			}
-		})
+		});
 
 
 	} else
@@ -545,46 +559,58 @@ function matchAsEmpty(el, cancel = false) {
 }
 
 function addNewPK(content) {
-	var openpgp = window.openpgp;
-	var obj = openpgp.key.readArmored(content);
 
-	if (obj.hasOwnProperty("err") && obj.err.length > 0) {
-		var errors = obj.err;
-		for (var i = 0; i < errors.length; i++) {
-			console.log(errors[i]);
+	var pks = {};
+
+	if (typeof(content) === "string")
+		content = [content];
+
+	for (var i = 0; i < content.length; i++) {
+		var openpgp = window.openpgp;
+		var obj = openpgp.key.readArmored(content[i]);
+
+		if (obj.hasOwnProperty("err") && obj.err.length > 0) {
+			var errors = obj.err;
+			for (var i = 0; i < errors.length; i++) {
+				console.log(errors[i]);
+			}
+			alert("Something has gone wrong! Look for errors in log!");
+			return;
 		}
-		alert("Something has gone wrong! Look for errors in log!");
-		return;
+
+		if (obj.keys[0].isPublic()) {
+			var messageData = {};
+			var ids = obj.keys[0].getUserIds()[0];
+			var email = ids.substring(ids.lastIndexOf(" ") + 1);
+			var name = ids.substring(0, ids.lastIndexOf(" "));
+			var jsonKey = name + ":" + email.substring(1, email.length - 1);
+
+			pks[jsonKey] = content[i];
+		} else {
+			throw new Error("Is not a public key!");
+		}
+
 	}
 
-	if (obj.keys[0].isPublic()) {
-		var messageData = {};
-		var ids = obj.keys[0].getUserIds()[0];
-		var email = ids.substring(ids.lastIndexOf(" ") + 1);
-		var name = ids.substring(0, ids.lastIndexOf(" "));
-		var jsonKey = name + ":" + email.substring(1, email.length - 1);
+	chrome.runtime.sendMessage(chrome.runtime.id, {
+		action: "get",
+		data: "PublicKeys"
+	}, function(response) {
+		var publicKeys = response.result["PublicKeys"] || {};
 
+		$.extend(true, publicKeys, pks);
 		chrome.runtime.sendMessage(chrome.runtime.id, {
-			action: "get",
-			data: "PublicKeys"
+			action: "set",
+			data: {
+				"PublicKeys": publicKeys
+			}
 		}, function(response) {
-			var publicKeys = response.result["PublicKeys"] || {};
-			publicKeys[jsonKey] = content;
-			chrome.runtime.sendMessage(chrome.runtime.id, {
-				action: "set",
-				data: {
-					"PublicKeys": publicKeys
-				}
-			}, function(response) {
-				console.log(response.result);
-				clearCurrentSubject();
-				removeCurrentPassphrase();
-				changePill("keys_opt");
-			});
+			console.log(response.result);
+			clearCurrentSubject();
+			removeCurrentPassphrase();
+			changePill("keys_opt");
 		});
-	} else {
-		throw new Error("Is not a public key!");
-	}
+	});
 }
 
 function removePK(keys) {
@@ -641,25 +667,47 @@ function dropFile(event, callback) {
 
 	event.preventDefault();
 
-	var reader = new FileReader();
-	reader.onload = function(event) {
-		var content = event.target.result;
-		try {
-			callback(content);
-		} catch (e) {
-			console.log(e);
-		}
-	};
-
 	var files = event.dataTransfer.files;
-	var len = files.length;
-	if (len) {
+	if (files.length) {
+
+		var reader = new FileReader();
+		reader.onload = function(event) {
+			var content = event.target.result;
+			try {
+				callback(content);
+			} catch (e) {
+				console.log(e);
+			}
+		};
+
 		reader.readAsText(files[0]);
 
-		console.log("Filename: " + files[0].name);
-		console.log("Type: " + files[0].type);
-		console.log("Size: " + files[0].size + " bytes");
+		console.log("Filename: " + file.name);
+		console.log("Type: " + file.type);
+		console.log("Size: " + file.size + " bytes");
 	}
+}
+
+function dropPKFiles(event) {
+
+	event.preventDefault();
+	$("#dropzone").data("pk", []);
+
+	var files = event.dataTransfer.files;
+	for (var i = 0; i < files.length; i++) {
+		var reader = new FileReader();
+		reader.onload = function(event) {
+			var content = event.target.result;
+			$("#dropzone").data("pk").push(content);
+			if ($("#dropzone").data("pk").length == files.length) {
+				var data = $("#dropzone").data("pk");
+				$("#dropzone").removeData();
+				addNewPK(data);
+			}
+		};
+		reader.readAsText(files[i]);
+	}
+
 }
 
 function addMyKey(text, ispublic) {

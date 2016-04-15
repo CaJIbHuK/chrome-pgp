@@ -58,6 +58,28 @@ function initPGPEvents() {
 
   });
 
+  $("#subject").keydown(function(e) {
+    if (e.keyCode == 40)
+      $("#search_dropdown").children('li').first().children('a').focus();
+  });
+
+  $("#search_dropdown").keydown(function(e) {
+    if (e.keyCode == 40) {
+      $("a:focus").closest('li').next().children('a').focus();
+    }
+
+    if (e.keyCode == 38) {
+      $("a:focus").closest('li').prev().children('a').focus();
+    }
+  });
+
+  $(document).keyup(function(event) {
+    if ($("#subject").attr("readonly") && (event.keyCode == 46)) {
+      $("#glyph_remove").click();
+      $("#subject").focus();
+    }
+  });
+
   $("#subject").keyup(function(event) {
     var ids = $(event.currentTarget).data("ids");
     var dropdown = $("#search_dropdown");
@@ -157,6 +179,8 @@ function restoreSubject() {
       null) {
       $("#subject").val(items.CurrentSubject);
       changeLookSelected();
+    } else {
+      $("#subject").focus();
     }
   });
 }

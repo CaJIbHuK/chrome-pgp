@@ -219,9 +219,9 @@ function getOptions(actionType, settings, callback) {
 							if (timer)
 								clearTimeout(timer);
 							timer = setTimeout(function() {
-									chrome.storage.local.remove("CurrentPassphrase")
+									chrome.storage.local.remove("CurrentPassphrase");
 								},
-								5 * 60000)
+								5 * 60000);
 
 
 							if (items.hasOwnProperty("MyKeys")) {

@@ -57,9 +57,6 @@ function prepareData(settings, actionType) {
       return;
     }
 
-    // $("#selection_container").data({
-    //   selection: selection
-    // });
 
     switch (settings.Mode) {
       case "mode_pass":
@@ -159,7 +156,7 @@ function initModalEvents() {
     delete data.action;
     data.passphrase = $("#passphrase").val();
     $("#passphrase").val("");
-    $("#passphrase_modal").data(undefined);
+    $("#passphrase_modal").removeData();
     $("#passphrase_modal").toggle(false);
 
     chrome.runtime.sendMessage(chrome.runtime.id, {
@@ -172,7 +169,7 @@ function initModalEvents() {
 
   $("#passphrase_cancel").click(function(e) {
     $("#passphrase").val("");
-    $("#passphrase_modal").data(undefined);
+    $("#passphrase_modal").removeData();
     $("#passphrase_modal").toggle(false);
   });
 
@@ -204,14 +201,10 @@ function initModalEvents() {
 
 
 function replaceResult(result) {
-
   if (!document.execCommand("insertText", false, result)) {
     $("#pgp_modal").toggle(true);
     $("#pgp_result").val(result);
   }
-
-  $("#selection_container").data(undefined);
-
 }
 
 function formatSelected(text) {

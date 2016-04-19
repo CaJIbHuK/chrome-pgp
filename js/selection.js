@@ -98,7 +98,7 @@ function prepareData(settings, actionType) {
             data: data
           }, function(
             response) {
-            replaceResult(response.result);
+            replaceResult(response);
           });
 
         } else {
@@ -166,7 +166,7 @@ function initModalEvents() {
       action: action,
       data: data
     }, function(response) {
-      replaceResult(response.result);
+      replaceResult(response);
     });
   });
 
@@ -205,11 +205,18 @@ function initModalEvents() {
 }
 
 
-function replaceResult(result) {
-  if (!document.execCommand("insertText", false, result)) {
+function replaceResult(response) {
+
+  if (response.hasOwnProperty('valid')) {
+    if (!response.valid) {
+      alert('Integrity verification failed during decryption!');
+    }
+  }
+
+  if (!document.execCommand("insertText", false, response.result)) {
     $("#pgp_modal").toggle(true);
     $("body").addClass('lock-pgp');
-    $("#pgp_result").val(result);
+    $("#pgp_result").val(response.result);
   }
 }
 

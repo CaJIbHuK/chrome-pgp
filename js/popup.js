@@ -160,7 +160,6 @@ function changeLookSelected() {
     var data = {
       "CurrentSubject": null
     };
-    chrome.storage.local.remove("CurrentPassphrase");
 
     chrome.storage.local.set(data, function() {
       $("#subject").val("");

@@ -1,4 +1,6 @@
 var timer;
+var openpgp = window.openpgp; // use as CommonJS, AMD, ES6 module or via window.openpgp
+setOpenpgpConfig();
 
 chrome.runtime.onStartup.addListener(function() {
 	chrome.storage.local.remove("CurrentPassphrase");
@@ -121,7 +123,6 @@ chrome.runtime.onMessage.addListener(
 				return;
 			}
 			try {
-				var openpgp = window.openpgp; // use as CommonJS, AMD, ES6 module or via window.openpgp
 
 				if (openpgp.getWorker() === undefined)
 					openpgp.initWorker({
@@ -134,10 +135,10 @@ chrome.runtime.onMessage.addListener(
 						opts.data = request.data.selection;
 
 						openpgp.encrypt(opts).then(function(ciphertext) {
-							result = ciphertext.data;
-							sendResponse({
-								result: formatEncResult(result)
-							});
+							var results = {
+								result: ciphertext.data
+							};
+							sendResponse(results);
 						}).catch(function(error) {
 							console.log(error);
 							alert("Encryption failed!");
@@ -153,10 +154,13 @@ chrome.runtime.onMessage.addListener(
 						}
 
 						openpgp.decrypt(opts).then(function(plaintext) {
-							result = plaintext.data;
-							sendResponse({
-								result: result
-							});
+
+							var results = {
+								result: plaintext.data
+							};
+							if (plaintext.hasOwnProperty('signatures'))
+								results.valid = plaintext.signatures[0].valid;
+							sendResponse(results);
 						}).catch(function(error) {
 							console.log(error);
 							alert("Decryption failed!");
@@ -228,8 +232,7 @@ function getOptions(actionType, settings, callback) {
 								pubk = openpgp.key.readArmored(settings.pk)
 									.keys;
 								privk = openpgp.key.readArmored(items.MyKeys.private_key)
-									.keys[
-										0];
+									.keys[0];
 
 								if (!privk.decrypt(settings.passphrase)) {
 									chrome.storage.local.remove("CurrentPassphrase");
@@ -288,8 +291,8 @@ function checkSenderID(id) {
 	return id === chrome.runtime.id;
 }
 
-function formatEncResult(text) {
-	return text.replace(
-		"\nComment: http://openpgpjs.org", "").replace(
-		"\nVersion: OpenPGP.js v2.1.0", "");
+function setOpenpgpConfig() {
+	openpgp.config.aead_protect = true;
+	openpgp.config.show_comment = false;
+	openpgp.config.show_version = false;
 }

@@ -1,19 +1,17 @@
 {
   "manifest_version": 2,
 
-  "name": "Easy OTG PGP",
-  "description": "Extension for easy encrypting messages using PGP",
+  "name": "Everyone's Privacy",
+  "description": "Extension for easy encrypting messages using OpenPGP.js",
   "version": "1.0",
 
   "browser_action": {
-    "default_icon": "images/icon.png",
+    "default_icon": "images/icon_48_3.png",
     "default_popup": "popup.html",
-    "default_title": "Easy OTG PGP"
+    "default_title": "Everyone's Privacy"
   },
 
   "permissions": [
-    "alarms",
-    "management",
     "clipboardRead",
     "clipboardWrite",
     "contextMenus",
@@ -24,9 +22,9 @@
   ],
 
   "icons": {
-    "16": "images/icon_16.png",
-    "48": "images/icon_48.png",
-    "128": "images/icon_128.png"
+    "16": "images/icon_16_3.png",
+    "48": "images/icon_48_3.png",
+    "128": "images/icon_128_3.png"
   },
 
   "background": {

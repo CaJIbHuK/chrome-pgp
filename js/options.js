@@ -186,7 +186,7 @@ function getContent(name, data = undefined) {
 			<div class="form-group btn-group col-md-5">
 					<input type="button" class="btn btn-primary" id="generate" value="Generate"></input>
 					<input type="reset" class="btn btn-primary" id="clear" value="Clear"></input>
-					<input type="button" class="btn btn-success" id="save" value="Save"></input>
+					<input type="button" class="btn btn-success" id="save" value="Download"></input>
 					<div id="preloader-container" class="hidden">
 						<img id="loader" src="images/loader.gif">
 					</div>
@@ -212,7 +212,7 @@ function getContent(name, data = undefined) {
 		<h4><small>drag&drop files with keys into the corresponding textarea</small></h4>
 		<div class="form-group btn-group col-md-5">
 			<input type="reset" class="btn btn-primary" id="clear_my_keys" value="Clear"></input>
-			<input type="button" class="btn btn-success" id="save_my_keys" value="Save"></input>
+			<input type="button" class="btn btn-success" id="save_my_keys" value="Download"></input>
 		</div>`;
 
 		if (data !== undefined && data.hasOwnProperty("MyKeys")) {

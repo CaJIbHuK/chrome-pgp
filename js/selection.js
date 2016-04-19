@@ -68,6 +68,7 @@ function prepareData(settings, actionType) {
 
         $("#passphrase_modal").data(data);
         $("#passphrase_modal").toggle(true);
+        $("body").addClass('lock-pgp');
         break;
       case "mode_pgp":
         if (settings.hasOwnProperty("CurrentSubject") && !settings.CurrentSubject) {
@@ -111,6 +112,7 @@ function prepareData(settings, actionType) {
 
           $("#passphrase_modal").data(data);
           $("#passphrase_modal").toggle(true);
+          $("body").addClass('lock-pgp');
         }
 
         break;
@@ -123,7 +125,7 @@ function prepareData(settings, actionType) {
 function getModalHtml() {
   var text =
     `<!-- The Modal -->
-<div id="passphrase_modal" class="modal-pgp">
+<div id="passphrase_modal" class="modal modal-pgp">
   <!-- Modal content -->
   <div class="modal-content-pgp">
   <h4 class="modal-title-pgp" id="passphrase_label">Enter passphrase:</h4>
@@ -158,6 +160,7 @@ function initModalEvents() {
     $("#passphrase").val("");
     $("#passphrase_modal").removeData();
     $("#passphrase_modal").toggle(false);
+    $("body").removeClass('lock-pgp');
 
     chrome.runtime.sendMessage(chrome.runtime.id, {
       action: action,
@@ -171,6 +174,7 @@ function initModalEvents() {
     $("#passphrase").val("");
     $("#passphrase_modal").removeData();
     $("#passphrase_modal").toggle(false);
+    $("body").removeClass('lock-pgp');
   });
 
   $("#passphrase_modal").bind("keyup", function(event) {
@@ -184,6 +188,7 @@ function initModalEvents() {
   $("#pgp_close").click(function(e) {
     $("#pgp_modal").toggle(false);
     $("#pgp_result").val("");
+    $("body").removeClass('lock-pgp');
   });
   $("#pgp_modal").bind("keyup", function(e) {
     if (e.keyCode == 27)
@@ -203,6 +208,7 @@ function initModalEvents() {
 function replaceResult(result) {
   if (!document.execCommand("insertText", false, result)) {
     $("#pgp_modal").toggle(true);
+    $("body").addClass('lock-pgp');
     $("#pgp_result").val(result);
   }
 }

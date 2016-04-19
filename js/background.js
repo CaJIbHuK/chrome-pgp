@@ -62,7 +62,6 @@ chrome.runtime.onMessage.addListener(
 			sendResponse({
 				result: undefined
 			});
-			throw new Error("Forbidden");
 		}
 
 		console.log(sender.tab ?
@@ -113,7 +112,6 @@ chrome.runtime.onMessage.addListener(
 			sendResponse({
 				result: undefined
 			});
-			throw new Error("Forbidden");
 		}
 
 
@@ -134,38 +132,37 @@ chrome.runtime.onMessage.addListener(
 					if (request.action == "encrypt") {
 
 						opts.data = request.data.selection;
-						try {
-							openpgp.encrypt(opts).then(function(ciphertext) {
-								result = ciphertext.data;
-								sendResponse({
-									result: formatEncResult(result)
-								});
+
+						openpgp.encrypt(opts).then(function(ciphertext) {
+							result = ciphertext.data;
+							sendResponse({
+								result: formatEncResult(result)
 							});
-						} catch (e) {
-							console.log(e);
-							throw new Error("Encryption failed!");
-						}
+						}).catch(function(error) {
+							console.log(error);
+							alert("Encryption failed!");
+						});
+
 
 					} else if (request.action == "decrypt") {
+
 						try {
 							opts.message = openpgp.message.readArmored(request.data.selection);
 						} catch (e) {
 							throw new Error("Inappropriate format of PGP message!");
 						}
 
-						try {
-							openpgp.decrypt(opts).then(function(plaintext) {
-								result = plaintext.data;
-								sendResponse({
-									result: result
-								});
+						openpgp.decrypt(opts).then(function(plaintext) {
+							result = plaintext.data;
+							sendResponse({
+								result: result
 							});
-						} catch (e) {
-							console.log(e);
-							throw new Error("Decryption failed!");
-						}
-					}
+						}).catch(function(error) {
+							console.log(error);
+							alert("Decryption failed!");
+						});
 
+					}
 				});
 			} catch (e) {
 				alert(e);
